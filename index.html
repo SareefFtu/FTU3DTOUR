@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>เดินเล่น มหาวิทยาลัยฟาฏอนี (ต้นแบบ)</title>
+<meta name="theme-color" content="#800020">
+<meta name="description" content="FTU 3D Virtual Tour — สำรวจมหาวิทยาลัยฟาฏอนีในรูปแบบ 3 มิติ">
+<title>FTU 3D Virtual Tour | Fatoni University</title>
 <style>
 :root{--bg:rgba(20,28,24,.82);--fg:#f3f6f1;--ac:#f08a24;--mut:#9fb3a5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html,body{height:100%;margin:0;background:#9bc4e2;font-family:system-ui,"Noto Sans Thai",Tahoma,sans-serif;color:var(--fg);overflow:hidden;touch-action:none;user-select:none}
@@ -23,9 +25,213 @@ canvas#c{display:block;width:100%;height:100%}
 #tour,#ovb{top:calc(84px + env(safe-area-inset-top,0px));left:10px;border:0;color:var(--fg);font:inherit;font-size:13px;cursor:pointer}#ovb{left:175px}#zb{right:10px;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;padding:4px}#zb button{width:38px;height:38px;border:0;border-radius:8px;background:#fff3;color:var(--fg);font-size:20px;cursor:pointer}#say{top:calc(126px + env(safe-area-inset-top,0px));left:10px;max-width:min(300px,calc(100% - 270px));display:none;line-height:1.4}#hint{bottom:calc(12px + env(safe-area-inset-bottom,0px));left:10px;max-width:calc(100% - 120px);color:var(--mut);font-size:12px}
 @media(pointer:coarse){#joy{display:block}#hint{display:none}#list{width:190px}}
 @media(max-width:600px){#list{max-height:30%}}
+
+/* ===== FTU 3D Virtual Tour — production UI ===== */
+:root{
+  --ftu-maroon:#800020;
+  --ftu-gold:#d7b45a;
+  --glass:rgba(18,24,22,.86);
+  --glass2:rgba(18,24,22,.72);
+  --line:rgba(255,255,255,.14);
+  --shadow:0 12px 35px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+button,input{font-family:inherit}
+#brand{
+  position:absolute;z-index:20;top:10px;left:10px;
+  display:flex;align-items:center;gap:9px;padding:7px 11px;
+  border-radius:13px;background:var(--glass);border:1px solid var(--line);
+  box-shadow:var(--shadow);backdrop-filter:blur(8px);pointer-events:none
+}
+#brand .mark{
+  width:34px;height:34px;border-radius:10px;background:var(--ftu-maroon);
+  display:grid;place-items:center;font-weight:800;color:#fff;font-size:15px
+}
+#brand strong{display:block;font-size:13px;line-height:1.2}
+#brand span{display:block;color:#cfd8d1;font-size:10px;margin-top:2px}
+#title{top:64px;left:10px}
+#prog{top:100px;left:10px}
+#topActions{
+  position:absolute;z-index:20;top:10px;right:10px;display:flex;gap:6px;
+  flex-wrap:wrap;justify-content:flex-end;max-width:min(58vw,520px)
+}
+.uiBtn{
+  border:1px solid var(--line);background:var(--glass);color:#fff;
+  border-radius:10px;padding:9px 11px;cursor:pointer;box-shadow:var(--shadow);
+  backdrop-filter:blur(8px);font-size:12px
+}
+.uiBtn:hover{background:rgba(50,58,54,.95)}
+.uiBtn.gold{border-color:rgba(215,180,90,.45)}
+#tour,#ovb{top:140px}
+#ovb{left:175px}
+#list{
+  z-index:15;top:10px;right:10px;width:280px;max-height:calc(100% - 220px);
+  padding:8px;background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow)
+}
+#list .listHead{display:flex;justify-content:space-between;align-items:center;margin:2px 2px 7px}
+#list .listHead b{font-size:12px}
+#list .listHead span{font-size:10px;color:#b7c4ba}
+#q{background:#fff;color:#222}
+.it{border:1px solid transparent}
+.it:hover{background:rgba(255,255,255,.08);border-color:var(--line)}
+#card{
+  z-index:18;bottom:18px;max-width:min(500px,calc(100% - 40px));
+  background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);
+  padding:12px 15px
+}
+#card .cardBtns{display:flex;justify-content:center;gap:6px;margin-top:9px;flex-wrap:wrap}
+#card .cardBtns button{border:0;border-radius:8px;padding:7px 10px;cursor:pointer}
+#card .cardBtns .primary{background:var(--ftu-gold);color:#211b0b}
+#card .cardBtns .secondary{background:#fff2;color:#fff}
+#say{z-index:18;background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow)}
+#hint{z-index:16}
+#mm{z-index:14;top:auto;right:10px;bottom:72px;width:160px;height:160px;box-shadow:var(--shadow)}
+#zb{z-index:17;bottom:12px}
+#tour,#ovb{z-index:17}
+#joy{z-index:19}
+#loading{
+  position:fixed;inset:0;z-index:100;background:
+  radial-gradient(circle at 50% 30%,rgba(128,0,32,.32),transparent 42%),
+  #101613;display:grid;place-items:center;transition:opacity .35s
+}
+#loading.hide{opacity:0;pointer-events:none}
+.loaderBox{width:min(430px,88vw);text-align:center;color:#fff}
+.loaderMark{
+  width:76px;height:76px;margin:0 auto 15px;border-radius:22px;
+  background:var(--ftu-maroon);display:grid;place-items:center;
+  font-size:25px;font-weight:800;box-shadow:0 12px 40px rgba(0,0,0,.35)
+}
+.loaderBox h1{margin:0;font-size:24px}
+.loaderBox p{margin:7px 0 18px;color:#b9c4bd;font-size:13px}
+.bar{height:6px;background:#fff1;border-radius:20px;overflow:hidden}
+.bar i{display:block;width:35%;height:100%;background:var(--ftu-gold);border-radius:20px;animation:load 1.2s ease-in-out infinite}
+@keyframes load{0%{transform:translateX(-120%)}100%{transform:translateX(330%)}}
+#welcome{
+  position:fixed;inset:0;z-index:90;display:grid;place-items:center;
+  background:rgba(7,12,10,.48);backdrop-filter:blur(5px)
+}
+.welcomeBox{
+  width:min(620px,92vw);padding:28px;border-radius:22px;
+  background:rgba(16,23,20,.94);border:1px solid var(--line);
+  box-shadow:0 25px 70px rgba(0,0,0,.45);color:#fff
+}
+.welcomeBox .eyebrow{color:var(--ftu-gold);font-size:12px;font-weight:700;letter-spacing:.08em}
+.welcomeBox h2{font-size:30px;margin:7px 0 5px}
+.welcomeBox p{color:#cbd4ce;line-height:1.65;font-size:14px;margin:0 0 18px}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 20px}
+.feature{padding:11px;border:1px solid var(--line);border-radius:12px;background:#fff1;font-size:12px}
+.startRow{display:flex;gap:8px;flex-wrap:wrap}
+.startBtn{
+  border:0;border-radius:11px;padding:11px 16px;cursor:pointer;
+  background:var(--ftu-gold);color:#211b0b;font-weight:700
+}
+.secondaryBtn{
+  border:1px solid var(--line);border-radius:11px;padding:11px 16px;
+  cursor:pointer;background:#fff1;color:#fff
+}
+#toast{
+  position:fixed;z-index:120;left:50%;bottom:22px;transform:translate(-50%,20px);
+  opacity:0;pointer-events:none;padding:10px 14px;border-radius:11px;
+  background:rgba(15,20,18,.94);border:1px solid var(--line);box-shadow:var(--shadow);
+  color:#fff;font-size:12px;transition:.25s
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#help{
+  position:fixed;inset:0;z-index:85;background:rgba(5,8,7,.58);
+  display:none;place-items:center;backdrop-filter:blur(4px)
+}
+.helpBox{
+  width:min(520px,92vw);max-height:82vh;overflow:auto;padding:22px;
+  border-radius:18px;background:rgba(18,24,22,.97);border:1px solid var(--line);
+  box-shadow:var(--shadow);color:#fff
+}
+.helpBox h3{margin:0 0 14px}
+.helpGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.helpItem{padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff1;font-size:12px;line-height:1.5}
+.helpItem b{color:var(--ftu-gold)}
+@media(max-width:800px){
+  #brand{top:8px;left:8px}
+  #brand span{display:none}
+  #brand .mark{width:31px;height:31px}
+  #topActions{top:8px;right:8px;max-width:52vw}
+  .uiBtn{padding:8px 9px;font-size:11px}
+  #list{top:58px;right:8px;width:min(230px,48vw);max-height:31%}
+  #title{display:none}
+  #prog{top:52px;left:8px;font-size:11px}
+  #tour,#ovb{top:auto;bottom:138px;left:8px}
+  #ovb{left:148px}
+  #mm{width:118px;height:118px;bottom:76px;right:8px}
+  #hint{display:none}
+  .features{grid-template-columns:1fr}
+  .welcomeBox{padding:22px}
+  .welcomeBox h2{font-size:25px}
+}
+@media(max-width:520px){
+  #topActions .hideMob{display:none}
+  #list{width:46vw;min-width:175px}
+  #card{bottom:10px;font-size:12px}
+  #joy{left:16px;bottom:16px;width:100px;height:100px}
+}
+
 </style>
 </head>
 <body>
+<div id="loading">
+  <div class="loaderBox">
+    <div class="loaderMark">FTU</div>
+    <h1>FTU 3D Virtual Tour</h1>
+    <p>กำลังเตรียมแผนที่และพื้นที่เสมือนของมหาวิทยาลัยฟาฏอนี</p>
+    <div class="bar"><i></i></div>
+  </div>
+</div>
+
+<div id="welcome">
+  <div class="welcomeBox">
+    <div class="eyebrow">FATONI UNIVERSITY</div>
+    <h2>FTU 3D Virtual Tour</h2>
+    <p>สัมผัสบรรยากาศมหาวิทยาลัยฟาฏอนีในรูปแบบ 3 มิติ สำรวจอาคาร ค้นหาสถานที่ และเดินชมพื้นที่เสมือนจริงได้ทั้งคอมพิวเตอร์และมือถือ</p>
+    <div class="features">
+      <div class="feature">🏫 สำรวจอาคารและสถานที่</div>
+      <div class="feature">🗺️ แผนที่ย่อและระบบนำทาง</div>
+      <div class="feature">📱 รองรับมือถือและสัมผัส</div>
+    </div>
+    <div class="startRow">
+      <button class="startBtn" id="startTour">🚀 เริ่ม Virtual Tour</button>
+      <button class="secondaryBtn" id="showHelp">❓ วิธีใช้งาน</button>
+    </div>
+  </div>
+</div>
+
+<div id="help">
+  <div class="helpBox">
+    <h3>วิธีใช้งาน FTU 3D Virtual Tour</h3>
+    <div class="helpGrid">
+      <div class="helpItem"><b>W A S D</b><br>เดินสำรวจพื้นที่</div>
+      <div class="helpItem"><b>ลากเมาส์</b><br>หมุนมุมมอง</div>
+      <div class="helpItem"><b>Wheel / ＋ −</b><br>ซูมเข้า–ออก</div>
+      <div class="helpItem"><b>Shift</b><br>วิ่ง</div>
+      <div class="helpItem"><b>M</b><br>ดูมุมสูง</div>
+      <div class="helpItem"><b>F</b><br>ไปยังอาคารเป้าหมาย</div>
+      <div class="helpItem"><b>มือถือ</b><br>ใช้ Joystick และลากหน้าจอ</div>
+      <div class="helpItem"><b>ค้นหา</b><br>พิมพ์ชื่ออาคารด้านขวา</div>
+    </div>
+    <div style="text-align:right;margin-top:14px">
+      <button class="secondaryBtn" id="closeHelp">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<div id="brand">
+  <div class="mark">FTU</div>
+  <div><strong>FTU 3D Virtual Tour</strong><span>Fatoni University</span></div>
+</div>
+<div id="topActions">
+  <button class="uiBtn gold" id="homeBtn">⌂ หน้าเริ่มต้น</button>
+  <button class="uiBtn" id="helpBtn">❓ วิธีใช้</button>
+  <button class="uiBtn hideMob" id="fullBtn">⛶ เต็มหน้าจอ</button>
+</div>
+<div id="toast"></div>
+
 <canvas id="c"></canvas>
 <div class="p" id="title">🎓 ทัวร์มหาวิทยาลัยฟาฏอนี</div>
 <div class="p" id="prog"></div>
@@ -34,7 +240,7 @@ canvas#c{display:block;width:100%;height:100%}
 <div class="p" id="say"></div>
 <div class="p" id="zb"><button id="zi">＋</button><button id="zo">－</button></div>
 <canvas id="mm" width="260" height="260"></canvas>
-<div class="p" id="list"><input id="q" placeholder="ค้นหาอาคาร..."><div id="items"></div></div>
+<div class="p" id="list"><div class="listHead"><b>🏫 สถานที่ในมหาวิทยาลัย</b><span id="countLabel"></span></div><input id="q" placeholder="ค้นหาอาคาร..."><div id="items"></div></div>
 <div class="p" id="card"></div>
 <div id="joy"><i></i></div>
 <div class="p" id="hint">WASD = เดิน · ลากเมาส์ = หมุนกล้อง · ลูกกลิ้งเมาส์ / + − = ซูม · M = มุมสูงดูทั้งมหาวิทยาลัย · Shift = วิ่ง · F = ไปที่เป้าหมาย</div>
@@ -194,6 +400,7 @@ for(let k=0;k<160;k++){const x=(rnd()-.5)*700+150,z=(rnd()-.5)*600;
 // ผู้เล่น
 const P={x:0,z:30,yaw:Math.PI,pitch:-.05,face:0},keys={},joy={x:0,y:0};
 let target=null,visited=new Set();
+try{JSON.parse(localStorage.getItem('ftu3dVisited')||'[]').forEach(i=>{const b=B.find(x=>String(x.i)===String(i));if(b)visited.add(b)})}catch(e){}
 function warp(b){const a=Math.atan2(b.x,b.z);P.x=b.x+Math.sin(a)*(b.d/2+16);P.z=b.z+Math.cos(a)*(b.d/2+16);
  P.yaw=Math.atan2(P.x-b.x,P.z-b.z);target=b;renderList()}
 addEventListener('keydown',e=>{keys[e.code]=1;if(e.code==='KeyF'&&target)warp(target);if(e.code==='KeyM')toggleOver()});addEventListener('keyup',e=>keys[e.code]=0);
@@ -220,8 +427,8 @@ J.addEventListener('pointerup',()=>{jd=false;joy.x=joy.y=0;K.style.left=K.style.
 const items=document.getElementById('items'),q=document.getElementById('q');
 const dist=b=>Math.hypot(b.x-P.x,b.z-P.z);
 const fmt=d=>d>=1000?(d/1000).toFixed(1)+' กม.':Math.round(d)+' ม.';
-function renderList(){const k=q.value.trim().toLowerCase();items.innerHTML='';
- B.filter(b=>b.n.toLowerCase().includes(k)).forEach(b=>{const e=document.createElement('div');e.className='it'+(b===target?' t':'');
+function renderList(){const k=q.value.trim().toLowerCase();items.innerHTML='';const countLabel=document.getElementById('countLabel');
+ const filtered=B.filter(b=>b.n.toLowerCase().includes(k));countLabel.textContent=`${filtered.length} แห่ง`;filtered.forEach(b=>{const e=document.createElement('div');e.className='it'+(b===target?' t':'');
   e.innerHTML=`<span><b>${b.i}</b>${visited.has(b)?'✅ ':''}${b.n}</span><small>${fmt(dist(b))}</small>`;
   e.onclick=()=>warp(b);items.appendChild(e)})}
 q.oninput=renderList;q.addEventListener('keydown',e=>e.stopPropagation());
@@ -239,7 +446,8 @@ function drawMap(){const W=260,sc=.42;g.fillStyle='#8fbf7a';g.fillRect(0,0,W,W);
  g.beginPath();g.moveTo(0,-11);g.lineTo(8,9);g.lineTo(0,5);g.lineTo(-8,9);g.closePath();g.fill();g.stroke();g.restore()}
 
 const card=document.getElementById('card'),prog=document.getElementById('prog');
-function upd(){prog.textContent=`เช็คอิน ${visited.size}/${B.length}`+(visited.size===B.length?' 🎉 ครบแล้ว!':'')}
+function upd(){prog.textContent=`เช็คอิน ${visited.size}/${B.length}`+(visited.size===B.length?' 🎉 ครบแล้ว!':'');try{localStorage.setItem('ftu3dVisited',JSON.stringify([...visited].map(b=>b.i)))}catch(e){}}
+
 upd();
 function resize(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}
 addEventListener('resize',resize);resize();
@@ -301,10 +509,34 @@ function loop(t){requestAnimationFrame(loop);const dt=Math.min((t-last)/1000,.05
  R.render(S,cam);drawMap();
  acc+=dt;if(acc>.3){acc=0;const near=B.find(b=>dist(b)-Math.max(b.w,b.d)/2<14);
   if(near){if(!visited.has(near)){visited.add(near);upd()}
-   card.style.display='block';card.innerHTML=`<h3>${near.i}. ${near.n}</h3>${near.t}<br><small style="color:var(--mut)">${near.v?'พิกัดจาก Google Maps':'ตำแหน่งประมาณจากภาพแผนที่'} · เช็คอินแล้ว ✅</small>`}
+   card.style.display='block';card.innerHTML=`<h3>${near.i}. ${near.n}</h3>${near.t}<br><small style="color:var(--mut)">${near.v?'พิกัดจาก Google Maps':'ตำแหน่งประมาณจากภาพแผนที่'} · เช็คอินแล้ว ✅</small><div class="cardBtns"><button class="primary" onclick="warp(B.find(x=>x===target||x.i==='${near.i}'))">📍 ไปที่อาคาร</button><button class="secondary" onclick="say('${near.n} — ${near.t.replace(/'/g,"\\'")}')">🔊 ข้อมูล</button></div>`}
   else card.style.display='none';
   if(!document.activeElement||document.activeElement!==q)renderList()}}
 warp(B[3]);
+
+/* ===== App shell controls ===== */
+const loading=document.getElementById('loading'),welcome=document.getElementById('welcome'),
+      help=document.getElementById('help'),toastEl=document.getElementById('toast');
+const toast=t=>{toastEl.textContent=t;toastEl.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>toastEl.classList.remove('show'),2200)};
+setTimeout(()=>loading.classList.add('hide'),650);
+
+document.getElementById('startTour').onclick=()=>{welcome.style.display='none';toast('ยินดีต้อนรับสู่ FTU 3D Virtual Tour')};
+document.getElementById('showHelp').onclick=()=>help.style.display='grid';
+document.getElementById('helpBtn').onclick=()=>help.style.display='grid';
+document.getElementById('closeHelp').onclick=()=>help.style.display='none';
+help.addEventListener('click',e=>{if(e.target===help)help.style.display='none'});
+document.getElementById('homeBtn').onclick=()=>{
+  welcome.style.display='grid';welcome.querySelector('h2').textContent='FTU 3D Virtual Tour';
+};
+document.getElementById('fullBtn').onclick=async()=>{
+  try{
+    if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
+    else await document.exitFullscreen();
+  }catch(e){toast('เบราว์เซอร์นี้ไม่รองรับโหมดเต็มหน้าจอ')}
+};
+
+window.addEventListener('load',()=>setTimeout(()=>loading.classList.add('hide'),300));
+
 requestAnimationFrame(loop);
 </script>
 </body>
