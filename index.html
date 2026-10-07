@@ -51,6 +51,7 @@ button,input{font-family:inherit}
 #brand span{display:block;color:#cfd8d1;font-size:10px;margin-top:2px}
 #title{top:64px;left:10px}
 #prog{top:100px;left:10px}
+#mapSource{top:136px;left:10px;color:#d7b45a;font-size:11px}
 #topActions{
   position:absolute;z-index:20;top:10px;right:10px;display:flex;gap:6px;
   flex-wrap:wrap;justify-content:flex-end;max-width:min(58vw,520px)
@@ -62,7 +63,7 @@ button,input{font-family:inherit}
 }
 .uiBtn:hover{background:rgba(50,58,54,.95)}
 .uiBtn.gold{border-color:rgba(215,180,90,.45)}
-#tour,#ovb{top:140px}
+#tour,#ovb{top:178px}
 #ovb{left:175px}
 #list{
   z-index:15;top:10px;right:10px;width:280px;max-height:calc(100% - 220px);
@@ -158,6 +159,7 @@ button,input{font-family:inherit}
   #list{top:58px;right:8px;width:min(230px,48vw);max-height:31%}
   #title{display:none}
   #prog{top:52px;left:8px;font-size:11px}
+  #mapSource{top:78px;left:8px;font-size:10px}
   #tour,#ovb{top:auto;bottom:138px;left:8px}
   #ovb{left:148px}
   #mm{width:118px;height:118px;bottom:76px;right:8px}
@@ -235,6 +237,7 @@ button,input{font-family:inherit}
 <canvas id="c"></canvas>
 <div class="p" id="title">🎓 ทัวร์มหาวิทยาลัยฟาฏอนี</div>
 <div class="p" id="prog"></div>
+<div class="p" id="mapSource">📍 Map aligned · 6.5986936, 101.3435207</div>
 <button class="p" id="tour">🚶 เริ่มทัวร์กับน้องไกด์</button>
 <button class="p" id="ovb">🗺️ มุมสูง (M)</button>
 <div class="p" id="say"></div>
@@ -246,46 +249,84 @@ button,input{font-family:inherit}
 <div class="p" id="hint">WASD = เดิน · ลากเมาส์ = หมุนกล้อง · ลูกกลิ้งเมาส์ / + − = ซูม · M = มุมสูงดูทั้งมหาวิทยาลัย · Shift = วิ่ง · F = ไปที่เป้าหมาย</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// พิกัด verified=true มาจากลิงก์ Google Maps ที่ให้มา, false = ประมาณจากภาพแผนที่ (แก้ไขได้ที่นี่)
+// แหล่งอ้างอิงตำแหน่ง: Google Maps ของมหาวิทยาลัยฟาฏอนี + ภาพ Satellite ที่แนบมา
+// จุดอ้างอิงหลักจากลิงก์ล่าสุด: 6.5986936, 101.3435207 (North-up)
+// อาคาร/ถนนที่วางจากภาพ Satellite ใช้ระบบ pixel-to-world ด้านล่าง เพื่อให้ตำแหน่งสัมพันธ์กับผังจริง
+// พิกัดโรงอาหารตรวจสอบจาก Google Maps: 6.5966311, 101.3431585 (ด้านหลังมัสยิดอัลฮารอมัยน์)
+// แยกจาก Fatoni Cafe & Roastery ซึ่ง Google Maps ระบุพิกัด 6.5975647, 101.3434477
+// ตรวจสอบล่าสุดจาก Google Maps: มัสยิด 6.5965835,101.3442485 | โรงอาหาร 6.5966311,101.3431585 | Cafe 6.5975647,101.3434477 | FTU Library 6.5977398,101.3449864 | หอประชุม 6.5997156,101.3440982 | สำนักอธิการบดี 6.5989252,101.3441201
 const B=[
-{i:1,n:"สำนักงานอธิการบดี",lat:6.598552,lng:101.344121,w:44,d:22,c:0xefe6c8,v:0,t:"อาคารสำนักงานอธิการบดี ศูนย์กลางการบริหารมหาวิทยาลัย โดดเด่นด้วยหอคอยหลังคาปั้นหยากับซุ้มโค้งทรงลูกกุญแจ"},
-{i:2,n:"คณะอิสลามศึกษาและนิติศาสตร์",lat:6.597935,lng:101.344068,w:40,d:18,c:0xcbc5cc,v:0,t:"คณะอิสลามศึกษาและนิติศาสตร์ อาคาร 4 ชั้น มีหอคอยกลางและซุ้มโค้งอิฐแดง"},
-{i:3,n:"คณะศิลปศาสตร์และสังคมศาสตร์",lat:6.598522,lng:101.344694,w:36,d:18,c:0xd8d3c7,v:0,t:"คณะศิลปศาสตร์และสังคมศาสตร์ ตั้งอยู่ติดกับสำนักวิทยบริการ"},
-{i:4,n:"สำนักวิทยบริการ",lat:6.5981026,lng:101.3448235,w:34,d:18,c:0xe9e8e3,v:1,t:"สำนักวิทยบริการ ห้องสมุดและแหล่งเรียนรู้ อาคารสูงที่สุดในกลุ่มอาคารเรียน"},
-{i:5,n:"คณะวิทยาศาสตร์และเทคโนโลยี",lat:6.595392,lng:101.344706,w:44,d:20,c:0xf1ede6,v:0,t:"คณะวิทยาศาสตร์และเทคโนโลยี มีอาคารทรงกลมผนังอิฐส้มและหลังคาจานกลมขนาดใหญ่"},
-{i:6,n:"มัสยิดอัลฮารอมัยน์",lat:6.5965835,lng:101.3442485,w:36,d:30,c:0xf3f1ea,v:1,t:"มัสยิดประจำมหาวิทยาลัย โดดเด่นด้วยโดมสีทองและซุ้มทางเข้าโค้งแบบอาหรับ"},
-{i:8,n:"หอประชุมวันมูหะมัดนอร์ มะทา",lat:6.5997156,lng:101.3440982,w:34,d:22,c:0xf2f2ec,v:1,t:"หอประชุมใหญ่ของมหาวิทยาลัย หลังคาสีน้ำเงินและซุ้มทางเข้าอิฐส้ม"},
-{i:16,n:"คณะศึกษาศาสตร์",lat:6.5954379,lng:101.343,w:40,d:18,c:0x7a2db8,v:1,t:"คณะศึกษาศาสตร์ อาคารสีม่วงเด่นสะดุดตา ผลิตบัณฑิตครูและบุคลากรทางการศึกษา"},
-{i:21,n:"อาคารเฉลิมพระเกียรติ",lat:6.597996,lng:101.345696,w:50,d:20,c:0xe3e2de,v:0,t:"อาคารเรียนรวมเฉลิมพระเกียรติ มีเสาเฉียงเรียงแถวและหลังคาสีน้ำเงิน"},
-{i:24,n:"บัณฑิตวิทยาลัย",lat:6.595837,lng:101.343887,w:40,d:16,c:0xb9bee0,v:0,t:"บัณฑิตวิทยาลัย (Graduate School) หอคอยหลังคาสีน้ำเงินและระเบียงลายฉลุสีขาว"},
-{i:28,n:"อาคารอัลกุรอานและอัสสุนนะฮ",lat:6.599220,lng:101.345281,w:28,d:16,c:0xf0e29a,v:0,t:"อาคารอัลกุรอานและอัสสุนนะฮ มีสัญลักษณ์แท่นวางอัลกุรอานบนหลังคา"},
-{i:'IT',n:"สาขาเทคโนโลยีสารสนเทศ & Data Science",lat:6.595233,lng:101.345429,w:40,d:18,c:0xf3f1ec,v:0,t:"อาคารสาขาวิชาเทคโนโลยีสารสนเทศและ Data Science ส่วนหน้าทรงโค้งมีเสาสีส้มอิฐ และมีป้ายชื่อภาษาอาหรับ"},
-{i:'🍽',n:"โรงอาหาร",lat:6.597594,lng:101.343461,w:22,d:14,c:0xf2c48d,v:0,t:"โรงอาหารมหาวิทยาลัย (ยังไม่มีรูปอาคารจริง)"}
+{i:1,n:"สำนักงานอธิการบดี",rotY:-Math.PI/2,ip:[230,163],lat:6.5989252,lng:101.3441201,w:44,d:22,c:0xefe6c8,v:0,t:"อาคารสำนักงานอธิการบดี ศูนย์กลางการบริหารมหาวิทยาลัย โดดเด่นด้วยหอคอยหลังคาปั้นหยากับซุ้มโค้งทรงลูกกุญแจ"},
+{i:2,n:"คณะอิสลามศึกษาและนิติศาสตร์",rotY:-Math.PI/2,ip:[218,242],lat:6.597935,lng:101.344068,w:40,d:18,c:0xcbc5cc,v:0,t:"คณะอิสลามศึกษาและนิติศาสตร์ อาคาร 4 ชั้น มีหอคอยกลางและซุ้มโค้งอิฐแดง"},
+{i:3,n:"คณะศิลปศาสตร์และสังคมศาสตร์",faceTo:21,ip:[330,196],lat:6.598522,lng:101.344694,w:36,d:18,c:0xe7dfa6,v:0,t:"คณะศิลปศาสตร์และสังคมศาสตร์ อาคาร 4 ชั้น สีครีมเหลือง ปีกสองข้างมีปลายอาคารสีขาวและแผงอิฐส้ม ส่วนกลางเป็นระเบียงเปิดพร้อมหอกลางลายกุญแจและหลังคาปั้นหยาสีน้ำเงิน"},
+{i:4,n:"สำนักวิทยบริการ",rotY:Math.PI/2,ip:[310,250],lat:6.5981026,lng:101.3448235,w:34,d:18,c:0xe9e8e3,v:1,t:"สำนักวิทยบริการ ห้องสมุดและแหล่งเรียนรู้ อาคาร 7 ชั้น หอกระจกสีฟ้ามีกันสาดซ้อนเป็นชั้น หอคอยคอนกรีตสีเบจ และบล็อกทางเข้า เชื่อมต่อกับ FTU Library"},
+{i:5,n:"คณะวิทยาศาสตร์และเทคโนโลยี",rotY:Math.PI/2,ip:[285,505],lat:6.595392,lng:101.344706,w:44,d:20,c:0xf1ede6,v:0,t:"คณะวิทยาศาสตร์และเทคโนโลยี อาคาร 4 ชั้น ผนังขาวสลับแผงสีส้มอิฐ ปีกขวาเป็นอาคารทรงกลมหลังคาจานรียื่นออก ผนังอิฐพร้อมป้ายชื่อและชั้นล่างกระจกโค้ง มุขทางเข้ากรอบสีส้มอิฐพร้อมผนังโค้งเจาะรูและหลังคาสีฟ้า และหอบันไดบล็อกแก้ว"},
+{i:6,n:"มัสยิดอัลฮารอมัยน์",rotY:Math.PI/2,lat:6.5965835,lng:101.3442485,w:56,d:26,c:0xf3f1ea,v:1,t:"มัสยิดกลางมหาวิทยาลัย โดมสีทองบนฐานสี่เหลี่ยมใต้หลังคาปั้นหยาสีน้ำเงิน ปีกสองข้างมีซุ้มโค้งแหลม ลายฉลุ และซุ้มทางเข้าสีส้มอิฐ"},
+{i:8,n:"หอประชุมวันมูหะมัดนอร์ มะทา",ip:[228,87],lat:6.5997156,lng:101.3440982,w:45,d:22,c:0xf2f2ec,v:1,t:"หอประชุมวันมูหะหมัดนอร์ มะทา หลังคาปั้นหยาสีน้ำเงินขนาดใหญ่ มุขกลางซุ้มโค้งสีส้มอิฐ ปีกสองข้างเป็นซุ้มโค้งสีขาว และมีแปลงดอกไม้กลมด้านหน้า"},
+{i:16,n:"คณะศึกษาศาสตร์",rotY:Math.PI/2,lat:6.5954379,lng:101.343,w:40,d:18,c:0x7a2db8,v:1,t:"คณะศึกษาศาสตร์ อาคารสีม่วงเด่นสะดุดตา ผลิตบัณฑิตครูและบุคลากรทางการศึกษา"},
+{i:21,n:"อาคารเฉลิมพระเกียรติ",rotY:-Math.PI/2,mir:1,sk:1.8,sy:1.05,ip:[424,240],lat:6.597996,lng:101.345696,w:50,d:22,c:0xe3e2de,v:0,t:"อาคารเรียนรวมเฉลิมพระเกียรติ อาคาร 5 ชั้น สีครีม ระเบียงแนวนอนสีขาว มุขกลางจั่วซุ้มโค้ง ปีกซ้ายเป็นอาคารทรงกลมหลังคาโซลาร์เซลล์สีน้ำเงิน"},
+{i:24,n:"บัณฑิตวิทยาลัย",rotY:Math.PI,ip:[205,476],lat:6.595837,lng:101.343887,w:56,d:44,c:0xdcdbe8,v:0,t:"บัณฑิตวิทยาลัย อาคาร 3 ชั้น ผังตัวยู ปีกซ้ายหลังคาสีแดงเข้มและปีกขวาหลังคาน้ำเงิน หอกลางเสาสีม่วงอ่อนแผงอิฐแดงช่องรูกุญแจ ศาลาหลังคาปั้นหยาสีน้ำเงิน และระเบียงลายฉลุสีขาว ทางเข้าหันไปทางทิศเหนือ"},
+{i:28,n:"อาคารอัลกุรอานและอัสสุนนะฮ",ip:[350,125],lat:6.599220,lng:101.345281,w:28,d:16,c:0xf0e29a,v:0,t:"อาคารอัลกุรอานและอัสสุนนะฮ มีสัญลักษณ์แท่นวางอัลกุรอานบนหลังคา"},
+{i:'IT',n:"สาขาเทคโนโลยีสารสนเทศ & Data Science",rotY:Math.PI,ip:[352,540],lat:6.595233,lng:101.345429,w:40,d:18,c:0xf3f1ec,v:0,t:"อาคารสาขาวิชาเทคโนโลยีสารสนเทศและ Data Science ส่วนหน้าทรงโค้งมีเสาสีส้มอิฐ และมีป้ายชื่อภาษาอาหรับ"},
+{i:30,n:"FTU Library (ห้องสมุดมหาวิทยาลัย)",rotY:Math.PI/2,ip:[313,277],lat:6.5977398,lng:101.3449864,w:28,d:16,c:0xd9d3c4,v:1,t:"FTU Library ห้องสมุดมหาวิทยาลัย อาคารสีครีม มีหอคอยช่องโค้งแคบและมุขซุ้มโค้งแหลมหลังคาปั้นหยา เชื่อมต่อกับสำนักวิทยบริการ"},
+{i:29,n:"สำนักงานสภามหาวิทยาลัย",ip:[301,112],lat:6.5994174,lng:101.3448691,w:28,d:15,c:0xf4f1ea,v:1,t:"สำนักงานสภามหาวิทยาลัย อาคาร 2 ชั้น หลังคาปั้นหยาสีน้ำเงิน ผนังขาว หน้าต่างโค้งทั้งสองปีก และมุขกลางเสาอิฐพร้อมกระจกสะท้อนแสง"},
+{i:'🍽',n:"โรงอาหาร",rotY:Math.PI,ip:[137,383],lat:6.5966311,lng:101.3431585,w:22,d:14,c:0xf2c48d,v:1,t:"โรงอาหารมหาวิทยาลัย — ด้านหลังมัสยิดอัลฮารอมัยน์"},
+{i:'☕',n:"Fatoni Cafe & Roastery",rotY:Math.PI,ip:[165,294],lat:6.5975647,lng:101.3434477,w:20,d:14,c:0x8b5a2b,v:1,t:"Fatoni Cafe & Roastery — จุดบริการกาแฟและเครื่องดื่มภายในมหาวิทยาลัย"}
 ];
-const lat0=6.5975,lng0=101.3435;
+const MAP_CENTER={lat:6.5986936,lng:101.3435207};
+const lat0=MAP_CENTER.lat,lng0=MAP_CENTER.lng;
 const toXZ=(la,ln)=>({x:(ln-lng0)*111320*Math.cos(lat0*Math.PI/180),z:-(la-lat0)*110540});
 B.forEach(b=>Object.assign(b,toXZ(b.lat,b.lng)));
+// Calibration ของภาพ Satellite ที่ใช้เป็นแม่แบบภายใน (ไม่ฝังภาพ Google Maps ในเว็บไซต์)
+// จุดมหาวิทยาลัยจากลิงก์ล่าสุด: 6.5986936,101.3435207
+// Anchor ในภาพอ้างอิง: (172,185) และมาตราส่วนประมาณ 1.15 เมตร/พิกเซล
+// ค่า pixel coordinates ของอาคาร/ถนนถูกใช้เพื่อจัดแนว 3D ให้ตรงกับภาพ Satellite
+const IC=toXZ(MAP_CENTER.lat,MAP_CENTER.lng);
+const MAP_ANCHOR={px:172,py:185,metersPerPixel:1.15};
+const IMG=(x,y)=>({x:IC.x+(x-MAP_ANCHOR.px)*MAP_ANCHOR.metersPerPixel,z:IC.z+(y-MAP_ANCHOR.py)*MAP_ANCHOR.metersPerPixel});
+B.forEach(b=>{if(b.ip)Object.assign(b,IMG(b.ip[0],b.ip[1]))});
+// วงเวียนหน้ามหาวิทยาลัย (กลางวงเวียนตามภาพดาวเทียม)
+const RB=Object.assign(IMG(195,72),{r:15,ri:8});
 const px2w=(x,y)=>toXZ(6.5981026-(y-205)/94000,101.3448235+(x-218)/94000);
 const px2w2=(x,y)=>toXZ(6.5965835-(y-335)/94000,101.3442485+(x-162)/94000);
-const ROADS=[
-[[120,48],[115,100],[120,160],[125,240],[125,300],[118,360],[100,420],[85,500],[70,580],[62,633]],
-[[0,68],[55,78],[100,62],[120,48]],
-[[88,240],[125,245],[200,252],[280,265],[330,275],[375,300]],
-[[150,115],[200,125],[285,130]],
-[[310,50],[290,100],[272,170],[268,250],[255,330],[243,400],[240,445]],
-[[375,300],[382,340],[378,395],[360,440],[335,468],[290,475],[250,465]],
-[[375,300],[400,255],[440,200],[480,150],[505,125],[545,150],[590,190]],
-[[310,50],[390,55],[450,80],[505,125]],
-[[378,395],[410,405],[445,412],[490,380],[530,345],[565,318]],
-[[118,375],[170,385],[215,395],[243,402]],
-[[122,440],[170,452],[210,458],[250,465]]
-].map(r=>r.map(p=>px2w2(...p)));
-const FIELD=px2w2(298,372);
+const FIELD=IMG(390,425);
 const dseg=(p,a,b)=>{const dx=b.x-a.x,dz=b.z-a.z;let t=((p.x-a.x)*dx+(p.z-a.z)*dz)/(dx*dx+dz*dz);t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-a.x-t*dx,p.z-a.z-t*dz)};
 const projPt=(p,a,b)=>{const dx=b.x-a.x,dz=b.z-a.z;let t=((p.x-a.x)*dx+(p.z-a.z)*dz)/(dx*dx+dz*dz);t=Math.max(0,Math.min(1,t));return {x:a.x+t*dx,z:a.z+t*dz}};
 function nearestRoad(p,skip){let q0=null,bd=1e9;ROADS.forEach((r,ri)=>{if(ri===skip)return;for(let i=1;i<r.length;i++){const q=projPt(p,r[i-1],r[i]),d=Math.hypot(q.x-p.x,q.z-p.z);if(d<bd){bd=d;q0=q}}});return {q:q0,d:bd}}
-ROADS.forEach((r,ri)=>[0,r.length-1].forEach(k=>{const n=nearestRoad(r[k],ri);if(n.d<45)r[k]={x:n.q.x,z:n.q.z}}));
-const PATHS=B.map(b=>{const a={x:b.x,z:b.z+b.d/2+3};return [a,nearestRoad(a,-1).q]});
+// ถนนตามภาพดาวเทียม (พิกเซลของภาพ 800x751) -> เส้นโค้ง Catmull-Rom
+const cat=(P,n=7)=>{const o=[];for(let i=0;i<P.length-1;i++){const p0=P[Math.max(0,i-1)],p1=P[i],p2=P[i+1],p3=P[Math.min(P.length-1,i+2)];
+ for(let k=0;k<n;k++){const t=k/n,t2=t*t,t3=t2*t,f=(a,b,c,d)=>.5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t2+(-a+3*b-3*c+d)*t3);o.push({x:f(p0.x,p1.x,p2.x,p3.x),z:f(p0.z,p1.z,p2.z,p3.z)})}}o.push(P[P.length-1]);return o};
+const onRing=(from)=>{const dx=from.x-RB.x,dz=from.z-RB.z,m=Math.hypot(dx,dz);return {x:RB.x+dx/m*RB.r,z:RB.z+dz/m*RB.r}};
+const RI=(pts,ring)=>{const P=pts.map(p=>IMG(p[0],p[1]));if(ring===0)P[0]=onRing(P[1]);if(ring===1)P[P.length-1]=onRing(P[P.length-2]);return cat(P)};
+const ROADS=[
+ RI([[0,50],[75,40],[130,50],[180,62]],1), // ทางเข้าด้านตะวันตก
+ RI([[0,105],[60,50],[112,0]]), // ถนนใหญ่จากทิศตะวันตกเฉียงเหนือ
+ RI([[190,85],[185,130],[178,175],[168,210],[160,250],[158,272],[165,288]],0), // ถนนสายหลักลงจากวงเวียน
+ RI([[185,131],[220,135],[270,148],[320,155],[370,165],[395,172]]), // ถนนขวางด้านเหนือ
+ RI([[222,135],[235,115],[250,117],[270,148]]), // ซอยโค้งข้างหอประชุม
+ RI([[285,82],[280,115],[277,148]]), // ถนนข้างหอประชุม
+ RI([[392,75],[382,110],[377,150],[380,200],[385,255],[398,285],[418,310],[440,325]]), // ถนนสายตะวันออก (ฝั่งอาคารเฉลิมพระเกียรติ)
+ RI([[378,170],[370,195],[360,235],[350,280],[345,340],[335,400],[325,450],[315,500],[305,530]]), // ถนนสายตะวันออกลงใต้
+ RI([[255,142],[252,200],[242,260],[240,300]]), // ถนนข้างคลอง
+ RI([[290,150],[285,200],[272,240]]), // ซอย
+ RI([[175,195],[205,200],[235,207]]), // ซอย
+ RI([[168,228],[200,235]]), // ซอย
+ RI([[160,288],[205,296],[240,298],[320,310],[365,325],[425,335],[465,345]]), // ถนนขวางด้านใต้
+ RI([[465,345],[475,352],[477,400],[475,425],[472,510],[450,535],[395,534],[350,520],[322,510]]), // ถนนรอบสนามกีฬา
+ RI([[475,345],[520,370]]), // ทางแยกไปหอพัก
+ RI([[205,298],[197,350],[187,400],[177,430],[167,500],[155,560],[145,625],[135,670],[128,700]]), // ถนนสายใต้
+ RI([[180,435],[240,445],[320,465]]), // ถนนระหว่างมัสยิด-บัณฑิตวิทยาลัย
+ RI([[247,420],[243,470],[240,505]]), // ซอย
+ RI([[205,441],[205,449],[205,455]]), // ทางเข้าบัณฑิตวิทยาลัย (แยกจากถนนระหว่างมัสยิด-บัณฑิตวิทยาลัย ฝั่งตรงข้ามคณะศึกษาศาสตร์)
+ RI([[305,530],[285,540],[268,544]]), // ถนนเชื่อมคณะวิทยาศาสตร์
+ RI([[322,510],[305,530]]), // ถนนเชื่อมคณะวิทยาศาสตร์-IT
+ RI([[627,160],[580,200],[530,245],[490,285],[445,332]]), // ถนนทแยงไปหอพัก
+ RI([[392,75],[415,57],[450,50],[480,57],[525,92],[580,125],[620,150],[627,160],[650,175],[672,205],[692,230],[715,237],[725,234]]), // ถนนวนเหนือไปหอพัก
+ RI([[278,305],[270,350],[268,372]]), // ซอย
+ RI([[262,392],[295,398],[332,408]]) // ถนนทางเข้ามัสยิดอัลฮารอมัยน์ (ทิศ E)
+];
+const frontPt=(b,k)=>{const r=b.rotY||0,f=(b.fd||b.d/2)+k;return {x:b.x+Math.sin(r)*f,z:b.z+Math.cos(r)*f}};
+const PATHS=B.map(b=>{const a=frontPt(b,3);return [a,nearestRoad(a,-1).q]});
 
 
 const cv=document.getElementById('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true});
@@ -300,6 +341,11 @@ const rm=new THREE.MeshLambertMaterial({color:0x6e7176}),pm=new THREE.MeshLamber
 const strip=(a,b,w,m,y)=>{const l2=Math.hypot(b.x-a.x,b.z-a.z),o=new THREE.Mesh(new THREE.BoxGeometry(l2+(w>5?3:0),.12,w),m);o.position.set((a.x+b.x)/2,y,(a.z+b.z)/2);o.rotation.y=-Math.atan2(b.z-a.z,b.x-a.x);S.add(o)};
 ROADS.forEach(r=>{for(let i=0;i<r.length-1;i++)strip(r[i],r[i+1],7,rm,.06)});
 PATHS.forEach(p=>strip(p[0],p[1],3.5,pm,.09));
+// วงเวียน
+(function(){const rg=new THREE.Mesh(new THREE.RingGeometry(RB.ri,RB.r+.6,48),rm);rg.rotation.x=-Math.PI/2;rg.position.set(RB.x,.07,RB.z);S.add(rg);
+ const cb=new THREE.Mesh(new THREE.RingGeometry(RB.ri-.3,RB.ri+.35,48),new THREE.MeshLambertMaterial({color:0xe8e4d8}));cb.rotation.x=-Math.PI/2;cb.position.set(RB.x,.14,RB.z);S.add(cb);
+ const is=new THREE.Mesh(new THREE.CircleGeometry(RB.ri-.3,40),new THREE.MeshLambertMaterial({color:0x5aa648}));is.rotation.x=-Math.PI/2;is.position.set(RB.x,.13,RB.z);S.add(is);
+ [[0,0,1.6],[2.6,1.4,1.1],[-2.4,1.8,1],[-1.2,-2.6,1.2],[2.2,-2.2,.9]].forEach(([dx,dz,r])=>{const sh=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),new THREE.MeshLambertMaterial({color:0x2f7a3a}));sh.position.set(RB.x+dx,r*.8,RB.z+dz);S.add(sh)})})();
 (function(){const W=416,Hh=512,c=document.createElement('canvas');c.width=W;c.height=Hh;const x=c.getContext('2d'),LM=k=>new THREE.MeshLambertMaterial({color:k});
  x.fillStyle='#a8452f';x.fillRect(0,0,W,Hh);x.strokeStyle='rgba(255,255,255,.7)';x.lineWidth=2;for(let k=0;k<5;k++){const m=6+k*8;x.strokeRect(m,m,W-2*m,Hh-2*m)}
  const a=48,b=48,pw=W-96,ph=Hh-96;for(let k=0;k<10;k++){x.fillStyle=k%2?'#4e9a3e':'#58a846';x.fillRect(a,b+k*ph/10,pw,ph/10)}
@@ -317,9 +363,9 @@ function label(t,n){const c=document.createElement('canvas');c.width=512;c.heigh
  g.fillText(t.length>22?t.slice(0,21)+'…':t,66,62);
  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false,transparent:true}));
  s.scale.set(22,4.1,1);s.renderOrder=9;return s}
-const LABS=[];const META={1:{k:'fac',fl:3,tw:0x4a5878,br:0xb4533c,x1:'up'},2:{k:'fac',fl:4,tw:0x2f3b45,br:0xa8472f,x1:'awn'},3:{k:'fac',fl:4,tw:0x2f3b45,br:0xc96a35,x1:'awn'},
-4:{k:'lib',fl:7},5:{k:'sci',fl:4},6:{k:'mos',fl:2},8:{k:'hall',fl:2},16:{k:'fac',fl:4,tw:0x2f3f6a,br:0xb5a38a,x1:'wings'},
-21:{k:'conv',fl:5},24:{k:'fac',fl:3,tw:0x2d5fb0,br:0xa65a3a,x1:'maroon'},28:{k:'quran',fl:3},IT:{k:'it',fl:2},'🍽':{k:'canteen',fl:1}};
+const LABS=[];const META={1:{k:'fac',fl:3,tw:0x4a5878,br:0xb4533c,x1:'up'},2:{k:'fac',fl:4,tw:0x2f3b45,br:0xa8472f,x1:'awn'},3:{k:'arts',fl:4},
+4:{k:'lib',fl:7},30:{k:'ftulib',fl:3},5:{k:'sci',fl:4},6:{k:'mos',fl:2},8:{k:'hall',fl:2},16:{k:'fac',fl:4,tw:0x2f3f6a,br:0xb5a38a,x1:'wings'},
+21:{k:'conv',fl:5},24:{k:'grad',fl:3},28:{k:'quran',fl:3},IT:{k:'it',fl:2},'🍽':{k:'canteen',fl:1},29:{k:'council',fl:2}};
 const L=c=>new THREE.MeshLambertMaterial({color:c}),css=c=>'#'+('000000'+c.toString(16)).slice(-6);
 function facade(col,tall){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');
  x.fillStyle=col;x.fillRect(0,0,128,128);x.fillStyle='rgba(0,0,0,.2)';x.fillRect(0,118,128,10);x.fillStyle='rgba(255,255,255,.5)';x.fillRect(0,0,128,3);
@@ -336,6 +382,72 @@ function panelTex(c,type){const cv=document.createElement('canvas');cv.width=128
   x.fillStyle='#5e5249';x.beginPath();x.arc(64,60,31,0,7);x.fill();x.beginPath();x.moveTo(42,92);x.lineTo(86,92);x.lineTo(98,158);x.lineTo(30,158);x.fill()}
  else{x.beginPath();x.arc(64,70,46,Math.PI,0);x.lineTo(110,160);x.lineTo(18,160);x.fill();x.fillStyle='#4a413b';x.beginPath();x.arc(64,70,38,Math.PI,0);x.lineTo(102,160);x.lineTo(26,160);x.fill()}
  return new THREE.CanvasTexture(cv)}
+function archPath(x,cx,y,w,h){x.beginPath();x.moveTo(cx-w/2,y+h);x.lineTo(cx-w/2,y+h*.38);x.quadraticCurveTo(cx-w/2,y+h*.1,cx,y);x.quadraticCurveTo(cx+w/2,y+h*.1,cx+w/2,y+h*.38);x.lineTo(cx+w/2,y+h);x.closePath()}
+function roundArch(x,cx,y,w,h){x.beginPath();x.moveTo(cx-w/2,y+h);x.lineTo(cx-w/2,y+w/2);x.arc(cx,y+w/2,w/2,Math.PI,0);x.lineTo(cx+w/2,y+h);x.closePath()}
+function lattice(x,X,Y,W,H){x.fillStyle='#e6d9c0';x.fillRect(X,Y,W,H);x.strokeStyle='#b8a888';x.lineWidth=1.5;for(let i=0;i<=W;i+=8){x.beginPath();x.moveTo(X+i,Y);x.lineTo(X+i,Y+H);x.stroke()}for(let j=0;j<=H;j+=8){x.beginPath();x.moveTo(X,Y+j);x.lineTo(X+W,Y+j);x.stroke()}
+ x.fillStyle='#cbbd9f';for(let i=4;i<W;i+=8)for(let j=4;j<H;j+=8){x.beginPath();x.arc(X+i,Y+j,1.6,0,7);x.fill()}x.strokeStyle='#f6f2e8';x.lineWidth=3;x.strokeRect(X,Y,W,H)}
+function mosFace(kind){const cv=document.createElement('canvas');cv.width=384;cv.height=192;const x=cv.getContext('2d');
+ x.fillStyle='#f5f3ec';x.fillRect(0,0,384,192);x.fillStyle='#e0b09a';x.fillRect(0,0,384,14);x.fillStyle='#f9f7f1';for(let i=0;i<384;i+=16){x.beginPath();x.moveTo(i,0);x.lineTo(i+8,14);x.lineTo(i+16,0);x.fill()}
+ x.fillStyle='rgba(0,0,0,.14)';x.fillRect(0,182,384,10);
+ const glass=(cx,y,w,h)=>{archPath(x,cx,y-4,w+8,h+4);x.fillStyle='#fbfaf6';x.fill();archPath(x,cx,y,w,h);const g=x.createLinearGradient(0,y,0,y+h);g.addColorStop(0,'#6f93b3');g.addColorStop(1,'#2f4a66');x.fillStyle=g;x.fill()};
+ const salmon=(X,W,door)=>{x.fillStyle='#d98c6c';x.fillRect(X,26,W,156);x.strokeStyle='#f6e6dc';x.lineWidth=3;x.strokeRect(X+5,31,W-10,146);
+  roundArch(x,X+W/2,50,W*.62,132);x.fillStyle='#f6efe4';x.fill();roundArch(x,X+W/2,60,W*.62-14,122);x.fillStyle=door?'#3f352d':'#5f86a8';x.fill()};
+ if(kind==='L'){salmon(8,104,0);lattice(x,128,34,60,138);[236,300,352].forEach(cx=>{glass(cx,34,32,56);x.fillStyle='#3d6288';x.fillRect(cx-14,108,28,64)})}
+ else if(kind==='R'){[32,84,136].forEach(cx=>{glass(cx,34,32,56);x.fillStyle='#3d6288';x.fillRect(cx-14,108,28,64)});lattice(x,184,34,60,138);salmon(264,112,1)}
+ else{x.fillStyle='#2d2722';x.fillRect(0,100,384,82);for(let i=0;i<=6;i++){x.fillStyle='#f5f3ec';x.fillRect(i*62-6,96,12,90)}
+  for(let i=0;i<6;i++){glass(i*62+31,30,38,62)}x.fillStyle='#f5f3ec';x.fillRect(0,92,384,8)}
+ const t=new THREE.CanvasTexture(cv);t.anisotropy=4;return t}
+function councilFace(){const cv=document.createElement('canvas');cv.width=512;cv.height=160;const x=cv.getContext('2d');
+ x.fillStyle='#f6f4ee';x.fillRect(0,0,512,160);x.fillStyle='rgba(0,0,0,.14)';x.fillRect(0,76,512,5);x.fillRect(0,152,512,8);
+ const gl=(X,Y,W,H,arch)=>{const g=x.createLinearGradient(0,Y,0,Y+H);g.addColorStop(0,'#86b0d6');g.addColorStop(1,'#34506f');if(arch){roundArch(x,X+W/2,Y,W,H);x.fillStyle='#fff';x.fill();roundArch(x,X+W/2,Y+3,W-6,H-3);x.fillStyle=g;x.fill()}else{x.fillStyle='#fff';x.fillRect(X-3,Y-3,W+6,H+6);x.fillStyle=g;x.fillRect(X,Y,W,H)}};
+ [20,66,112].forEach(X=>{gl(X,10,30,60,1);gl(X,88,30,58,0)});[372,418,464].forEach(X=>{gl(X,10,30,60,1);gl(X,88,30,58,0)});
+ const t=new THREE.CanvasTexture(cv);t.anisotropy=4;return t}
+function tile(wall,type){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle=wall;x.fillRect(0,0,128,128);
+ const gl=(X,Y,W,H,dk)=>{const g=x.createLinearGradient(0,Y,0,Y+H);g.addColorStop(0,dk?'#2f4558':'#6f93b3');g.addColorStop(1,dk?'#1d2d3b':'#34506f');x.fillStyle=g;x.fillRect(X,Y,W,H)};
+ if(type==='rib'){x.fillStyle='#f6f4ee';x.fillRect(0,0,128,9);gl(3,24,122,76,1);x.strokeStyle='rgba(255,255,255,.55)';x.lineWidth=1.5;for(let y=30;y<100;y+=9){x.beginPath();x.moveTo(3,y);x.lineTo(125,y);x.stroke()}
+  x.strokeStyle='#f2f0ea';x.lineWidth=3;for(let X=3;X<=125;X+=40.7){x.beginPath();x.moveTo(X,24);x.lineTo(X,100);x.stroke()}x.fillStyle='#fbfaf6';x.fillRect(0,104,128,12);x.fillStyle='rgba(0,0,0,.18)';x.fillRect(0,116,128,5)}
+ else if(type==='vert'){x.fillStyle='rgba(0,0,0,.08)';x.fillRect(0,0,128,128);[[22,30],[76,30]].forEach(([X])=>{x.fillStyle='#f4f2ec';x.fillRect(X-3,10,36,100);gl(X,13,30,94);x.fillStyle='#f4f2ec';x.fillRect(X,58,30,3)});x.fillStyle='#f6f4ee';x.fillRect(0,112,128,10)}
+  else if(type==='open'){x.fillStyle='#bfb48e';x.fillRect(0,0,128,128);x.fillStyle='#8c8467';x.fillRect(0,10,128,70);x.fillStyle='#f2efe6';x.fillRect(0,86,128,14);x.strokeStyle='#f2efe6';x.lineWidth=3;for(let X=4;X<128;X+=12){x.beginPath();x.moveTo(X,64);x.lineTo(X,86);x.stroke()}x.fillRect(0,0,128,6)}
+ else if(type==='sal'){x.fillStyle='#f3f1ea';x.fillRect(0,0,128,128);x.fillStyle=wall;x.fillRect(6,10,116,94);gl(10,18,108,52,0);x.strokeStyle='#f3f1ea';x.lineWidth=3;[46,82].forEach(X=>{x.beginPath();x.moveTo(X,18);x.lineTo(X,70);x.stroke()});x.fillStyle='rgba(0,0,0,.12)';x.fillRect(6,70,116,4);x.fillStyle='#f6f4ee';x.fillRect(0,104,128,24)}
+ else if(type==='bg'){x.fillStyle=wall;x.fillRect(0,0,128,128);const g2=x.createLinearGradient(0,18,0,98);g2.addColorStop(0,'#7aa8e0');g2.addColorStop(1,'#2b4f85');x.fillStyle='#f1eee4';x.fillRect(4,14,120,88);x.fillStyle=g2;x.fillRect(8,18,112,80);x.strokeStyle='#f1eee4';x.lineWidth=3;[36,64,92].forEach(X=>{x.beginPath();x.moveTo(X,18);x.lineTo(X,98);x.stroke()});x.beginPath();x.moveTo(8,58);x.lineTo(120,58);x.stroke();x.fillStyle='rgba(0,0,0,.12)';x.fillRect(0,106,128,6)}
+ else if(type==='arc'){x.fillStyle='#f6f4ee';x.fillRect(0,0,128,128);x.fillStyle='rgba(0,0,0,.08)';x.fillRect(0,0,12,128);x.fillRect(116,0,12,128);x.fillStyle='#e9e6dc';x.fillRect(0,0,128,8);
+  roundArch(x,64,20,80,104);x.fillStyle='#fff';x.fill();roundArch(x,64,26,70,98);const g=x.createLinearGradient(0,26,0,124);g.addColorStop(0,'#5d83a3');g.addColorStop(1,'#243a4d');x.fillStyle=g;x.fill();x.strokeStyle='#f4f2ec';x.lineWidth=3;x.beginPath();x.moveTo(64,26);x.lineTo(64,124);x.stroke()}
+ const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t}
+function wallsT(w,d,fl,col,type,per){const mk=n=>{const t=tile(css(col),type);t.repeat.set(n,fl);return new THREE.MeshLambertMaterial({map:t})};
+ const sx=mk(Math.max(1,Math.round(d/per))),sz=mk(Math.max(1,Math.round(w/per))),tp=L(0xb9bab8);return [sx,sx,tp,tp,sz,sz]}
+function solarTex(rx,ry){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');x.fillStyle='#3a86e6';x.fillRect(0,0,256,256);
+ for(let i=0;i<4;i++)for(let j=0;j<4;j++){x.fillStyle='#16346a';x.fillRect(i*64+5,j*64+5,54,54);x.strokeStyle='#5f9cdc';x.lineWidth=1;for(let k=1;k<4;k++){x.beginPath();x.moveTo(i*64+5+k*13.5,j*64+5);x.lineTo(i*64+5+k*13.5,j*64+59);x.stroke();x.beginPath();x.moveTo(i*64+5,j*64+5+k*13.5);x.lineTo(i*64+59,j*64+5+k*13.5);x.stroke()}}
+ const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx||1,ry||1);t.anisotropy=4;return t}
+function arcadeTex(){const c=document.createElement('canvas');c.width=512;c.height=256;const x=c.getContext('2d');x.fillStyle='#f4f2ec';x.fillRect(0,0,512,256);
+ [[16,48],[72,104]].forEach(([a,b])=>{const g=x.createLinearGradient(0,a,0,b);g.addColorStop(0,'#46627c');g.addColorStop(1,'#243a4d');x.fillStyle=g;x.fillRect(0,a,512,b-a);x.strokeStyle='rgba(255,255,255,.5)';for(let y=a+6;y<b;y+=7){x.beginPath();x.moveTo(0,y);x.lineTo(512,y);x.stroke()}});
+ x.fillStyle='#e6e3d9';x.fillRect(0,112,512,12);x.fillStyle='#f9f8f3';x.fillRect(0,126,512,8);
+ x.fillStyle='#2e2723';x.fillRect(0,140,512,116);x.fillStyle='#f6f4ee';for(let X=0;X<512;X+=32)x.fillRect(X,134,13,122);x.fillRect(0,236,512,20);
+ const t=new THREE.CanvasTexture(c);t.wrapS=THREE.RepeatWrapping;t.anisotropy=4;return t}
+function textTex(txt,bg,fg,fs,flip){const c=document.createElement('canvas');c.width=512;c.height=96;const x=c.getContext('2d');x.fillStyle=bg;x.fillRect(0,0,512,96);if(flip){x.translate(512,0);x.scale(-1,1)}x.fillStyle=fg;x.font='bold '+(fs||34)+'px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(txt,256,50);return new THREE.CanvasTexture(c)}
+function rtex(c,rx,ry){const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.anisotropy=4;return t}
+function sciBrick(rx,ry){const c=document.createElement('canvas');c.width=256;c.height=128;const x=c.getContext('2d');x.fillStyle='#c76a43';x.fillRect(0,0,256,128);x.strokeStyle='#a44e2d';x.lineWidth=1.5;for(let r=0;r<16;r++){const y=r*8;x.beginPath();x.moveTo(0,y);x.lineTo(256,y);x.stroke();for(let X=(r%2)*8;X<256;X+=16){x.beginPath();x.moveTo(X,y);x.lineTo(X,y+8);x.stroke()}}return rtex(c,rx,ry)}
+function sciGlass(rx,ry){const c=document.createElement('canvas');c.width=256;c.height=128;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,'#2d5670');g.addColorStop(1,'#14293a');x.fillStyle=g;x.fillRect(0,0,256,128);x.strokeStyle='#e8eef0';x.lineWidth=3;for(let X=0;X<=256;X+=32){x.beginPath();x.moveTo(X,0);x.lineTo(X,128);x.stroke()}[0,48,96].forEach(y=>{x.beginPath();x.moveTo(0,y);x.lineTo(256,y);x.stroke()});return rtex(c,rx,ry)}
+function sciRibbon(rx,ry){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,'#7db4c2');g.addColorStop(1,'#2e5568');x.fillStyle=g;x.fillRect(0,0,512,128);x.strokeStyle='#eef3f3';x.lineWidth=2.5;for(let X=0;X<=512;X+=32){x.beginPath();x.moveTo(X,0);x.lineTo(X,128);x.stroke()}[0,42,86,126].forEach(y=>{x.beginPath();x.moveTo(0,y);x.lineTo(512,y);x.stroke()});x.fillStyle='#dd8a74';[0,256].forEach(X=>x.fillRect(X-9,0,18,128));return rtex(c,rx,ry)}
+function glassBlock(){const c=document.createElement('canvas');c.width=128;c.height=256;const x=c.getContext('2d');x.fillStyle='#f1efe9';x.fillRect(0,0,128,256);for(let p=0;p<4;p++){const Y=10+p*62;x.fillStyle='#a7b6c4';x.fillRect(16,Y,96,46);x.strokeStyle='#dbe4ea';x.lineWidth=1.5;for(let i=0;i<=96;i+=8){x.beginPath();x.moveTo(16+i,Y);x.lineTo(16+i,Y+46);x.stroke()}for(let j=0;j<=46;j+=8){x.beginPath();x.moveTo(16,Y+j);x.lineTo(112,Y+j);x.stroke()}}const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+function libArch(){const c=document.createElement('canvas');c.width=256;c.height=160;const x=c.getContext('2d');x.fillStyle='#e4ddcc';x.fillRect(0,0,256,160);x.fillStyle='#f4f0e5';x.fillRect(0,72,256,10);x.fillRect(0,150,256,10);
+ [[64,10,56],[192,10,56]].forEach(([cx,y,h])=>{archPath(x,cx,y-3,66,h+3);x.fillStyle='#fbf8ef';x.fill();archPath(x,cx,y+3,54,h-3);const g=x.createLinearGradient(0,y,0,y+h);g.addColorStop(0,'#7e9db5');g.addColorStop(1,'#33495c');x.fillStyle=g;x.fill()});
+ [[64,86,62],[192,86,62]].forEach(([cx,y,h])=>{archPath(x,cx,y-3,66,h+3);x.fillStyle='#fbf8ef';x.fill();archPath(x,cx,y+3,54,h-3);x.fillStyle='#2a2f36';x.fill()});
+ x.strokeStyle='#f4f0e5';x.lineWidth=3;x.beginPath();x.moveTo(0,50);x.lineTo(256,50);x.stroke();return new THREE.CanvasTexture(c)}
+function libEntry(){const c=document.createElement('canvas');c.width=256;c.height=192;const x=c.getContext('2d');x.fillStyle='#e2dbc9';x.fillRect(0,0,256,192);x.fillStyle='#4a4f56';x.fillRect(60,18,136,16);x.fillStyle='#d8d2c0';for(let i=0;i<14;i++)x.fillRect(70+i*9,22,4,8);
+ x.fillStyle='#f6f2e8';x.fillRect(52,52,152,84);for(let i=0;i<9;i++){x.fillStyle='#2f3b48';x.fillRect(60+i*16,58,9,72)}
+ x.fillStyle='#eee9dc';x.fillRect(0,138,256,6);x.fillStyle='#25303a';x.fillRect(80,150,96,42);x.fillStyle='#dcd6c4';x.fillRect(126,150,4,42);
+ [18,238].forEach(X=>{archPath(x,X,14,12,160);x.fillStyle='#fbf8ef';x.fill();archPath(x,X,20,7,150);x.fillStyle='#34495c';x.fill()});return new THREE.CanvasTexture(c)}
+function libSlitT(){const c=document.createElement('canvas');c.width=64;c.height=256;const x=c.getContext('2d');x.fillStyle='#ddd6c4';x.fillRect(0,0,64,256);archPath(x,32,18,22,226);x.fillStyle='#f4f0e5';x.fill();archPath(x,32,24,14,216);x.fillStyle='#34495c';x.fill();x.strokeStyle='#f4f0e5';x.lineWidth=2;for(let y=50;y<250;y+=36){x.beginPath();x.moveTo(25,y);x.lineTo(39,y);x.stroke()}return new THREE.CanvasTexture(c)}
+function gsWing(flip){const c=document.createElement('canvas');c.width=256;c.height=192;const x=c.getContext('2d');x.fillStyle='#f4f4f6';x.fillRect(0,0,256,192);if(flip){x.translate(256,0);x.scale(-1,1)}
+ x.fillStyle='#e0e0e8';[62,126].forEach(y=>x.fillRect(0,y,256,5));
+ [8,70,134].forEach(r=>{x.fillStyle='#fafafc';x.fillRect(12,r,96,52);const g=x.createLinearGradient(0,r,0,r+52);g.addColorStop(0,'#4cb5a0');g.addColorStop(1,'#1f6f66');x.fillStyle=g;x.fillRect(16,r+4,88,44);x.strokeStyle='#f4f4f6';x.lineWidth=3;[45,74].forEach(X=>{x.beginPath();x.moveTo(X,r+4);x.lineTo(X,r+48);x.stroke()})});
+ x.fillStyle='#a9b4e2';x.fillRect(126,0,18,192);x.fillRect(222,0,18,192);x.fillRect(126,0,114,16);
+ x.fillStyle='#a4553b';x.fillRect(144,16,78,72);x.fillStyle='#fff';x.beginPath();x.arc(183,46,20,0,7);x.fill();x.fillStyle='#2a6e6a';x.beginPath();x.arc(183,46,14.5,0,7);x.fill();
+ x.fillStyle='#fff';x.beginPath();x.moveTo(163,54);x.lineTo(203,54);x.lineTo(183,86);x.closePath();x.fill();
+ x.fillStyle='#eaeaf5';x.fillRect(144,88,78,104);x.fillStyle='#2a8a80';x.fillRect(156,128,54,38);x.strokeStyle='#fafafc';x.lineWidth=3;x.beginPath();x.moveTo(183,128);x.lineTo(183,166);x.stroke();
+ const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+function latWhite(rx){const c=document.createElement('canvas');c.width=128;c.height=32;const x=c.getContext('2d');x.fillStyle='#f6f6f8';x.fillRect(0,0,128,32);x.strokeStyle='#c4c4cf';x.lineWidth=2;for(let i=0;i<8;i++){x.beginPath();x.arc(i*16+8,18,8,Math.PI,0);x.stroke();x.beginPath();x.arc(i*16+16,18,8,Math.PI,0);x.stroke()}x.fillStyle='#e6e6ee';x.fillRect(0,0,128,4);x.fillRect(0,28,128,4);
+ const t=new THREE.CanvasTexture(c);t.wrapS=THREE.RepeatWrapping;t.repeat.set(rx||1,1);t.anisotropy=4;return t}
 function build(b){const g=new THREE.Group(),H=b.h,Y=.4;let ex=4;
  const add=(ge,m,x,y,z)=>{const o=new THREE.Mesh(ge,m);o.position.set(x,y,z);g.add(o);return o};
  const box=(w,h,d,m,x,y,z)=>add(new THREE.BoxGeometry(w,h,d),m,x,y+h/2,z);
@@ -351,23 +463,151 @@ function build(b){const g=new THREE.Group(),H=b.h,Y=.4;let ex=4;
   if(b.x1==='maroon')[-1,1].forEach(a=>rf(15,d,3.2,0x8b4b3b,1.5,a*(w/2-8),Y+H+.8,0));
   if(b.x1==='up')box(14,3.5,d-4,L(0xefe6c8),-w*.28,Y+H+.8,0);
   tower(0,b.tw,b.br,b.c,H+1.5)}
- else if(b.k==='lib'){const H2=H+7;box(22,H,16,walls(22,16,b.fl,b.c,0),6,Y,0);box(8,H2,9,L(0xeceae4),8,Y,0);box(6,2.2,7,L(0xe2e0da),8,Y+H2,0);
-  box(5.5,H2,.3,L(0xcfcdc7),8,Y,4.6);box(14,10.5,14,walls(14,14,3,0xeeeae0,0),-10,Y,2);rf(14,14,3.5,0x4a74b0,2,-10,Y+10.5,2);ex=11}
- else if(b.k==='sci'){box(26,H,16,walls(26,16,b.fl,0xf3efe8,0),-9,Y,0);box(26.8,.8,16.8,L(0x3f6fb8),-9,Y+H,0);
-  const t=facade('#d2723a',0);t.repeat.set(16,b.fl);add(new THREE.CylinderGeometry(9,9,H,26),new THREE.MeshLambertMaterial({map:t}),11,Y+H/2,0);
-  add(new THREE.CylinderGeometry(7.6,7.6,4,26),L(0xe0907a),11,Y+H+2,0);add(new THREE.CylinderGeometry(7.7,7.7,1.8,26),L(0x5f8fa8),11,Y+H+2.4,0);
-  add(new THREE.CylinderGeometry(12,12,.7,30),L(0xf6f4ee),11,Y+H+4.4,0);ex=7}
- else if(b.k==='mos'){const W=b.w,D=b.d;box(W,H,D,walls(W,D,2,b.c,1),0,Y,0);box(W+3,.5,D+3,L(0x1f9a96),0,Y+H-.3,0);rf(W,D,5,0x2b3445,3,0,Y+H,0);
-  box(12,2.5,12,L(0xefede6),0,Y+H+3,0);add(new THREE.SphereGeometry(6.5,24,12,0,Math.PI*2,0,Math.PI/2),L(0xd9a93a),0,Y+H+5.5,0);
-  add(new THREE.CylinderGeometry(.25,.25,3),L(0xd9a93a),0,Y+H+13,0);
-  box(12,H+2,4,L(0xf6f5f0),0,Y,D/2+1.2);pn(8,6,0,Y+H-2.5,D/2+3.25,0xe39a7a,'arch');
-  [-1,1].forEach(a=>add(new THREE.CylinderGeometry(.5,.5,6),L(0xf6f5f0),a*3.4,Y+3,D/2+3.8));box(14,.6,3,L(0x9a9a98),0,Y,D/2+4.5);ex=14}
- else if(b.k==='hall'){box(34,7,22,walls(34,22,2,b.c,0),0,Y,0);rf(34,22,6,0x4f7fbf,3,0,Y+7,0);
-  box(11,10,5,L(0xf4f4ee),0,Y,11.5);pn(8,5,0,Y+6,14.03,0xe39a5a,'arch');rf(11,5,3,0x39424f,1.8,0,Y+10,11.5);box(8,.5,3,L(0xf0f0f0),0,Y,15.2);ex=8}
- else if(b.k==='conv'){box(26,17.5,20,walls(26,20,5,b.c,0),-10,Y,0);rf(26,20,5,0x5568c0,3,-10,Y+17.5,0);
-  box(24,10.5,20,walls(24,20,3,0xd9dade,0),14,Y,0);box(25,1,21,L(0xcfd2d8),14,Y+10.5,0);
-  for(let k=0;k<8;k++)add(new THREE.CylinderGeometry(.45,.45,10.5),L(0xb8b2a4),3+k*2.9,Y+5.25,11);ex=8}
- else if(b.k==='quran'){box(18,H,16,walls(18,16,3,b.c,0),-4,Y,0);box(18.6,.8,16.6,L(0x3f78c8),-4,Y+H,0);
+ else if(b.k==='lib'){const gr=0xcdc6b2,sd=L(0xd3ccb9),tpm=L(0xbdb6a4),Ht=H,H1=12;
+  // บล็อกทางเข้า (ซ้าย): ผนังครีม แถบป้าย ช่องหน้าต่างแนวตั้ง เสาหัวมุมมีช่องโค้งแคบ หลังคาสีน้ำเงินเข้ม
+  box(15,H1,14,[sd,sd,tpm,tpm,new THREE.MeshLambertMaterial({map:libEntry()}),sd],-9.5,Y,0);rf(15,14,1.8,0x2f3d66,1,-9.5,Y+H1,0);
+  box(9.6,.5,4.6,L(0xcfc8b6),-9.5,Y+4.2,8.6);[-13.5,-5.5].forEach(x0=>box(.6,4.2,.6,L(0xe8e2d2),x0,Y,10.6));
+  // หอกระจกหลายชั้น: กระจกสีฟ้า กันสาดยื่นเป็นชั้นๆ
+  box(12,Ht,13,wallsT(12,13,b.fl,gr,'bg',4),4,Y,0);for(let f=1;f<=b.fl;f++)box(12.8,.4,2.4,L(0xb9b3a3),4,Y+f*3.5-.2,7.2);
+  [-2.2,10.2].forEach(x0=>box(.8,Ht,.8,L(0xc9c2ae),x0,Y,6.8));box(12.8,.5,13.8,tpm,4,Y+Ht,0);
+  // หอคอยคอนกรีตสีเบจ (ขวาสุด) แผงตั้งโค้งยอดแหลม และชานชั้นสูง
+  box(6,Ht+3,9,L(0xc4bda8),13.5,Y,-2);box(6.6,.5,9.6,L(0xb8b19c),13.5,Y+Ht+3,-2);
+  const sh=new THREE.Shape();sh.moveTo(-1.7,0);sh.lineTo(1.7,0);sh.lineTo(1.7,13);sh.lineTo(0,15);sh.lineTo(-1.7,13);sh.lineTo(-1.7,0);
+  const pm=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.3,bevelEnabled:false}),L(0xd2cbb6));pm.position.set(13.5,Y+7,2.5);g.add(pm);
+  [4,5,6].forEach(f=>box(2,.3,6,L(0xbdb6a4),17.5,Y+f*3.5,-1));
+  ex=4}
+else if(b.k==='ftulib'){const sd=L(0xd3ccb9),tpm=L(0xbdb6a4);
+  // หอคอยช่องโค้งแคบ (ปลายใต้) + บล็อกหลักสีครีม
+  box(5,15,8,[sd,sd,tpm,tpm,new THREE.MeshLambertMaterial({map:libSlitT()}),sd],-11.5,Y,-1);box(5.6,.4,8.6,tpm,-11.5,Y+15,-1);
+  box(10,10.5,14,wallsT(10,14,3,0xd8d2c0,'rib',5),-4,Y,0);box(10.6,.5,14.6,tpm,-4,Y+10.5,0);
+  // ส่วนมุขซุ้มโค้งแหลมหลังคาปั้นหยาสีน้ำเงินเทา
+  box(10,8,10,wallsT(10,10,2,0xd8d2c0,'rib',5),7,Y,-3);
+  box(9,7.2,6,[sd,sd,tpm,tpm,new THREE.MeshLambertMaterial({map:libArch()}),sd],7,Y,5);rf(11,8,2.6,0x3b4a6a,1.2,7,Y+7.2,5);
+  [3,11].forEach(x0=>box(.6,7.2,.6,L(0xe8e2d2),x0,Y,8.2));
+  box(5,7,10,L(0xcfc8b4),12.5,Y,-1);   // ส่วนเชื่อมกับสำนักวิทยบริการ
+  ex=6}
+else if(b.k==='sci'){const d=b.d,sal=0xd98a74,wh=L(0xf3f1ea),sl=L(0xe9e6de),grey=L(0xd2d0c9),dk=L(0x3a3f48),pk=L(0xd98a74),Hw=13.5;
+  // ปีกซ้าย: ผนังขาว แถบส้ม ระเบียงเป็นชั้น หลังคายื่นพร้อมค้ำยันรูปตัววี และหลังคาเมทัลชีทสีฟ้าด้านหลัง
+  box(10,Hw,16,wallsT(10,16,4,sal,'sal',5),-17,Y,-2);[-21.9,-12.1].forEach(x0=>box(1,Hw,1,wh,x0,Y,5.6));
+  for(let f=1;f<=4;f++)box(10.8,.4,1.5,wh,-17,Y+f*3.4-.2,6.3);
+  box(12.4,.4,7,grey,-17,Y+Hw,3.2);[-20,-14].forEach(x0=>{const c=add(new THREE.ConeGeometry(1.3,2.6,3),wh,x0,Y+Hw-1.3,6.4);c.rotation.z=Math.PI});
+  rf(9,9,1.7,0x7aa9dc,1,-17,Y+Hw+.4,-4.5);
+  // มุขทางเข้า: กรอบสีส้มอิฐ เพดานคาน + ผนังโค้งเจาะรู + หลังคาโค้งสีฟ้า
+  box(9,H-5.6,8,wh,-7.5,Y+5.6,2);box(8.4,4.2,.3,L(0x7a3b2a),-7.5,Y,3.4);box(1.6,2.6,.2,L(0x2a1f1a),-6.5,Y,3.6);
+  [-11.4,-3.6].forEach(x0=>box(1.2,4.4,1.2,pk,x0,Y,8.4));box(9.6,1.3,5.6,pk,-7.5,Y+4.4,6.2);
+  const bl=new THREE.Mesh(new THREE.BoxGeometry(11,.22,5.4),new THREE.MeshLambertMaterial({color:0x4b7fd0}));bl.position.set(-8.5,Y+6.1,7);bl.rotation.z=.2;g.add(bl);
+  [[5.8,8.5],[4.4,7.4]].forEach(([r,z0])=>{const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(0,r);sh.absarc(0,0,r,Math.PI/2,Math.PI,false);sh.lineTo(0,0);
+   const m=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.5,bevelEnabled:false}),new THREE.MeshLambertMaterial({color:0xe9e7e0,side:THREE.DoubleSide}));m.position.set(-12,Y,z0);g.add(m);
+   for(let k=0;k<4;k++)add(new THREE.CircleGeometry(.17,8),L(0x55504a),-12.6-k*.9,Y+1+k*.5+(r>5?0:0),z0+.52)});
+  // หอบันไดกลาง: บล็อกแก้ว หลังคาเหล็กยื่นสีเข้มขอบน้ำเงิน
+  box(5,H+4,9,[wh,wh,sl,sl,new THREE.MeshLambertMaterial({map:glassBlock()}),wh],-.5,Y,-3);
+  box(11,.35,12,dk,-.5,Y+H+4,-3);box(11.2,.2,.35,L(0x2f65c0),-.5,Y+H+4.35,3);
+  // ส่วนกลาง: ช่องระเบียงลึก แผงส้ม กรอบขาว และกันสาดซ้อนชั้น
+  box(10,H,18,wallsT(10,18,4,sal,'sal',5),7,Y,-1);box(10.6,.5,18.6,sl,7,Y+H,-1);
+  [2.2,11.8].forEach(x0=>box(1.1,H,1.1,wh,x0,Y,8.1));for(let f=1;f<=3;f++)box(10.8,.45,1.7,wh,7,Y+f*3.5-.2,8.5);
+  box(11,.22,3.8,grey,7,Y+H+.05,7.8);box(11,.22,3.2,grey,7,Y+H+.7,7.4);box(11,.2,.3,dk,7,Y+H+.95,9.2);
+  // อาคารทรงกลม: ชั้นล่างกระจกโค้ง ชั้น 2-3 ผนังอิฐพร้อมป้าย ชั้นบนกระจกริบบิ้น หลังคาจานรียื่นออกพร้อมค้ำยัน
+  const tx=16.5,tz=3.5,R=6;
+  add(new THREE.CylinderGeometry(R,R,3.5,36),new THREE.MeshLambertMaterial({map:sciGlass(6,1)}),tx,Y+1.75,tz);
+  add(new THREE.CylinderGeometry(R+.5,R+.5,.45,36),wh,tx,Y+3.5,tz);
+  add(new THREE.CylinderGeometry(R,R,6.6,36),new THREE.MeshLambertMaterial({map:sciBrick(7,2)}),tx,Y+3.5+3.3+.2,tz);
+  add(new THREE.CylinderGeometry(R+.4,R+.4,.4,36),wh,tx,Y+7.1,tz);
+  add(new THREE.CylinderGeometry(R+.03,R+.03,3.2,16,1,true,-.6,1.2),new THREE.MeshLambertMaterial({map:textTex('FACULTY OF SCIENCE & TECHNOLOGY','#c76a43','#ffffff',27)}),tx,Y+8.4,tz);
+  add(new THREE.CylinderGeometry(R+.5,R+.5,.4,36),wh,tx,Y+10.3,tz);
+  add(new THREE.CylinderGeometry(R-.5,R-.5,3.3,36),new THREE.MeshLambertMaterial({map:sciRibbon(3,1)}),tx,Y+12.1,tz);
+  const rd=add(new THREE.CylinderGeometry(8.4,8.4,.55,40),wh,tx,Y+H+.1,tz);rd.scale.x=1.18;
+  [[-3.8,6.8],[3.8,6.8],[0,8.2]].forEach(([a,c])=>{const k=add(new THREE.ConeGeometry(1.1,2.4,3),wh,tx+a,Y+H-1.2,tz+c*.7);k.rotation.z=Math.PI});
+  const ring=add(new THREE.TorusGeometry(R+.3,.05,6,40),L(0xb8bdc2),tx,Y+10.9,tz);ring.rotation.x=Math.PI/2;
+  ex=6}
+else if(b.k==='mos'){const D=b.d,Hc=H+3,w3=(f,tex)=>{const si=L(b.c),tp=L(0xdcdad4);return [si,si,tp,tp,new THREE.MeshLambertMaterial({map:tex}),si]};
+  // ปีกซ้าย / ปีกขวา (ผนังขาว ซุ้มส้มอิฐ ลายฉลุ หน้าต่างโค้งแหลม)
+  box(18,H,D-4,w3(0,mosFace('L')),-19,Y,-2);box(18,H,D-4,w3(0,mosFace('R')),19,Y,-2);
+  [-19,19].forEach(x0=>{box(18.8,.8,D-3.2,L(0xdc9f84),x0,Y+H,-2);box(18.8,.5,D-3.2,L(0xf4f2ec),x0,Y+H+.8,-2)});
+  // ส่วนกลางสูงกว่า เสาโล่งชั้นล่าง ซุ้มโค้งชั้นบน
+  box(20,Hc,D,w3(0,mosFace('C')),0,Y,0);box(20.8,.8,D+.8,L(0xdc9f84),0,Y+Hc,0);
+  // หลังคาปั้นหยาสีน้ำเงินรอบฐานโดม
+  rf(20,D,3.4,0x2b3f7c,2.6,0,Y+Hc+.8,0);
+  const yb=Y+Hc+2.2;box(9,4.6,9,walls(9,9,1,0xf3f1ea,0),0,yb,0);box(10,.6,10,L(0xe8e6de),0,yb+4.6,0);
+  add(new THREE.CylinderGeometry(4.4,4.6,1.8,28),L(0xe9e6de),0,yb+5.5,0);
+  const dm=add(new THREE.SphereGeometry(5.1,32,16,0,Math.PI*2,0,Math.PI/2),new THREE.MeshLambertMaterial({color:0xcfa443}),0,yb+6.4,0);dm.scale.y=1.12;
+  add(new THREE.CylinderGeometry(.15,.3,3.4,8),L(0xd4a93e),0,yb+6.4+5.7+1.4,0);add(new THREE.SphereGeometry(.55,10,8),L(0xd4a93e),0,yb+6.4+5.7+.6,0);
+  // หอสูงด้านขวา แถบกระจกสีน้ำเงินเข้ม
+  box(5.5,H+6,9,L(0xf3f1ea),24,Y,-5);box(5.9,.6,9.4,L(0xe1ddd3),24,Y+H+6,-5);box(1.8,H+4,.2,L(0x1f3a72),24,Y+1.5,-.4);box(5.5,.5,.3,L(0xdc9f84),24,Y+H+5,-.4);
+  // บันไดทางเข้าด้านหน้า + ลานหน้ามัสยิด
+  [0,1,2].forEach(k=>box(15-k*1.4,.4+k*.3,1.2,L(0xdedbd3),0,Y,D/2+1.4-k*1.1));box(24,.25,3,L(0xc9c6bd),19,Y,D/2-1);
+  box(9,.4,3,L(0xdedbd3),19,Y,D/2-2.6);ex=18}
+else if(b.k==='council'){const w=b.w,d=b.d,fl=2,sd=walls(w,d,fl,b.c,0),fr=new THREE.MeshLambertMaterial({map:councilFace()});
+  box(w,H,d,[sd[0],sd[1],sd[2],sd[3],fr,sd[5]],0,Y,0);box(w+.8,.7,d+.8,L(0xe6e4dc),0,Y+H,0);
+  rf(w,d,4.4,0x3a5cb4,3.2,0,Y+H+.7,0);
+  // มุขกลาง: เสาอิฐ 2 ต้น + กระจกสะท้อนแสง + หน้าจั่วกระจก
+  const brick=L(0xb4673f);box(11,H+1.5,2.2,L(0xf4f1ea),0,Y,d/2+.3);box(6.6,H,.4,L(0x7fb0c4),0,Y,d/2+1.5);
+  [-1,1].forEach(a=>{box(2.4,H+2.6,2.8,brick,a*4.4,Y,d/2+2);box(3,.5,3.4,L(0xd8a98a),a*4.4,Y+H+2.6,d/2+2)});
+  box(11.6,.6,3.6,L(0xe6e4dc),0,Y+H+.9,d/2+2);
+  const gb=add(new THREE.CylinderGeometry(3.6,3.6,.5,3),new THREE.MeshLambertMaterial({color:0x6fa8bd}),0,Y+H+3.4,d/2+.9);gb.rotation.x=-Math.PI/2;gb.scale.set(1.5,1,1);
+  box(14,.35,3.2,L(0xd6d2c6),0,Y,d/2+3.8);box(12,.7,2,L(0xd6d2c6),0,Y,d/2+2.6);box(3,2.4,.3,L(0x3a2f27),0,Y,d/2+1.6);
+  ex=6}
+else if(b.k==='hall'){const D=b.d,blue=0x2d56b5;
+  // ส่วนกลาง + หลังคาปั้นหยาสีน้ำเงินขนาดใหญ่
+  box(18,8,D-6,wallsT(18,D-6,2,0xf4f2ea,'arc',4.5),0,Y,0);box(19,.6,D-5,L(0xe9e6dc),0,Y+8,0);
+  rf(20,D-4,6.6,blue,3.4,0,Y+8.4,0);box(5,2.8,2.6,L(0xf6f4ee),0,Y+11.3,D/2-5.4);rf(5.4,2.8,1.8,blue,.8,0,Y+14,D/2-5.4);
+  // มุขกลางซุ้มโค้งสีส้มอิฐ
+  const pz=D/2-6+2.2+.6;box(10,8,4.4,L(0xf6f4ee),0,Y,pz);pn(7.2,6.4,0,Y+3.4,pz+2.23,0xe39a7a,'arch');rf(10.6,4.4,2.4,blue,1.4,0,Y+8,pz);
+  [-4.4,4.4].forEach(a=>add(new THREE.CylinderGeometry(.5,.5,6.5,10),L(0xf6f4ee),a,Y+3.25,pz+2.6));box(12,.4,1.8,L(0xd8d5cc),0,Y,pz+3.6);
+  // ปีกซุ้มโค้งสองข้าง + ศาลาปลายปีกหลังคาสีน้ำเงิน
+  [-1,1].forEach(a=>{box(9,5,D-8,wallsT(9,D-8,1,0xf6f4ee,'arc',4.5),a*13.5,Y,0);box(9.8,.6,D-7.2,L(0xf2f0ea),a*13.5,Y+5,0);box(9.9,.25,D-7.1,L(blue),a*13.5,Y+5.6,0);
+   box(4.6,5.4,D-7,wallsT(4.6,D-7,1,0xf6f4ee,'arc',4.6),a*20.2,Y,0);rf(4.6,D-7,2.8,blue,1.4,a*20.2,Y+5.4,0)});
+  // แปลงดอกไม้วงกลมด้านหน้า
+  const fz=D/2+10,fr=new THREE.Mesh(new THREE.RingGeometry(5.2,6.2,34),L(0xc4663a));fr.rotation.x=-Math.PI/2;fr.position.set(0,Y+.1,fz);g.add(fr);
+  const fg=new THREE.Mesh(new THREE.CircleGeometry(5.2,34),L(0x52a043));fg.rotation.x=-Math.PI/2;fg.position.set(0,Y+.08,fz);g.add(fg);ex=6}
+else if(b.k==='conv'){const d=b.d,R=11,Hc=12,h5=17.5,wx=11,wd=d-2;
+  // อาคารทรงกลมซ้าย หลังคาโซลาร์เซลล์สีน้ำเงิน ชั้นล่างเสาโค้ง
+  const at=arcadeTex();at.repeat.set(1,1);add(new THREE.CylinderGeometry(R,R,Hc,48),new THREE.MeshLambertMaterial({map:at}),-14,Y+Hc/2,0);
+  add(new THREE.CylinderGeometry(9.6,R+.8,2.4,48),L(0x2f7fe0),-14,Y+Hc+1.2,0);
+  const sr=new THREE.Mesh(new THREE.CircleGeometry(9.5,48),new THREE.MeshLambertMaterial({map:solarTex(1.2,1.2)}));sr.rotation.x=-Math.PI/2;sr.position.set(-14,Y+Hc+2.45,0);g.add(sr);
+  // ปีกอาคารหลัก 5 ชั้น สีครีม ระเบียงขาว
+  box(29,h5,wd,wallsT(29,wd,5,0xe3d9bf,'rib',5.8),wx,Y,0);
+  const sd=L(0x2f6fd0),stp=new THREE.MeshLambertMaterial({map:solarTex(5,3)});box(29.8,.5,wd+.8,[sd,sd,stp,sd,sd,sd],wx,Y+h5,0);
+  [[1,-3],[21,-3]].forEach(([x0,z0])=>rf(8,8,2.8,0x2d6bc8,1.6,x0,Y+h5+.5,z0));
+  // มุขกลางจั่วซุ้มโค้ง + หอกลาง
+  box(9,9.6,3.2,L(0xe9dfc3),wx,Y,wd/2+1.6);const gb=add(new THREE.CylinderGeometry(5.8,5.8,.8,3),L(0xe6dcbc),wx,Y+11,wd/2+1.7);gb.rotation.x=-Math.PI/2;gb.scale.set(1.05,1,.8);
+  const rg=new THREE.Mesh(new THREE.RingGeometry(1.5,2,28),L(0xbfb28c));rg.position.set(wx,Y+9.6,wd/2+3.3);g.add(rg);
+  box(5,4.2,.3,L(0x2fa4b0),wx,Y,wd/2+3.25);[-2.6,2.6].forEach(a=>add(new THREE.CylinderGeometry(.5,.5,4.4,10),L(0xf6f4ee),wx+a,Y+2.2,wd/2+3.4));
+  box(8.4,3.6,7,wallsT(8.4,7,1,0xf4f1ea,'rib',4.2),wx,Y+h5+.5,0);box(10,.5,8.6,L(0xd0ccc0),wx,Y+h5+4.1,0);
+  // ป้ายชื่ออาคารหินดำ
+  const dk=L(0x15171a);box(18,2.6,.8,[dk,dk,dk,dk,new THREE.MeshLambertMaterial({map:textTex('อาคารเรียนรวมเฉลิมพระเกียรติ','#15171a','#e9e3d0',30,b.mir)}),dk],wx,Y,wd/2+6.2);
+  // ศาลาหลังคากลมและอาคารเล็กหลังคาปั้นหยา
+  add(new THREE.CylinderGeometry(3.3,3.3,.4,24),L(0x2f86e0),21,Y+4,d/2+8);[[-1.8,-1.8],[1.8,-1.8],[1.8,1.8],[-1.8,1.8]].forEach(([a,c])=>box(.3,3.8,.3,L(0xf2f2ee),21+a,Y,d/2+8+c));
+  box(6,3.6,5,L(0xf1efe8),28,Y,d/2+4);rf(6,5,2,0x1f8fb8,1.6,28,Y+3.6,d/2+4);ex=6}
+else if(b.k==='arts'){const d=b.d,Hh=H,cream=0xe7dfa6,wh=L(0xf3f0e8);
+  [-1,1].forEach(a=>{box(6,Hh,d,wallsT(6,d,4,cream,'vert',4),a*9,Y,0);box(6,Hh+3.2,d,wallsT(6,d,4,0xf4f2ec,'vert',4),a*15,Y,0);
+   box(6.3,.45,d+.3,L(0xdedbd2),a*15,Y+Hh+3.2,0);box(6.3,.45,d+.3,L(0xdedbd2),a*9,Y+Hh,0);
+   const bp=add(new THREE.PlaneGeometry(5,3.6),L(0xc15a35),a*15,Y+2.4,d/2+.05);const gp=add(new THREE.PlaneGeometry(4.6,1.6),L(0x2a3f55),a*15,Y+1.2,d/2+.07)});
+  // แกนกลางระเบียงเปิด
+  box(12,Hh,5,wallsT(12,5,4,cream,'open',6),0,Y,-d/2+3);for(let f=1;f<=4;f++)box(12,.3,4,L(0xf2efe6),0,Y+f*3.5-.15,-d/2+5);
+  // หอกลาง ผนังอิฐส้มลายกุญแจ + เสากรอบสีขาว
+  box(6,Hh,4,L(0xf3f0e8),0,Y,d/2-2);pn(4.2,Hh*.58,0,Y+Hh*.62,d/2+.04,0xb85a3a,'key');[-1,1].forEach(a=>box(1.1,Hh,1.1,wh,a*3.4,Y,d/2));
+  box(7.2,.5,5,L(0xe3e0d6),0,Y+Hh,d/2-2);[-1,1].forEach(a=>[-1,1].forEach(c=>box(.4,3.2,.4,wh,a*2.8,Y+Hh+.5,d/2-2+c*1.8)));rf(7.6,5.6,3,0x2a4684,1.3,0,Y+Hh+3.7,d/2-2);
+  box(6,.4,3,L(0xdcd8cc),0,Y,d/2+2.2);ex=6}
+else if(b.k==='grad'){const d=b.d,Hh=H,lav=L(0xaab4e0),wh=L(0xf4f4f6),grey=L(0xdcdce2),brick=L(0xa4553b),wd=d-6,wz=-3;
+  const wingMat=(w,flip)=>{const sd=walls(w,wd,3,0xf4f4f6,0);return [sd[0],sd[1],sd[2],sd[3],new THREE.MeshLambertMaterial({map:gsWing(flip)}),sd[5]]};
+  // ปีกซ้าย/ขวา (ผังตัวยู ยื่นไปด้านหลัง) + ปีกเชื่อมด้านหลัง
+  box(17,Hh,wd,wingMat(17,0),-19.5,Y,wz);box(17,Hh,wd,wingMat(17,1),19.5,Y,wz);
+  [-19.5,19.5].forEach(x0=>box(17.6,.45,wd+.6,grey,x0,Y+Hh,wz));
+  rf(17,wd,2.8,0x7a3a30,1,-19.5,Y+Hh+.45,wz);rf(17,wd,2.8,0x2f67c8,1,19.5,Y+Hh+.45,wz);
+  box(22,Hh,10,walls(22,10,3,0xf4f4f6,0),0,Y,-d/2+5);rf(22,10,2,0x2f67c8,1,0,Y+Hh,-d/2+5);
+  // ทางเดินระเบียงลายฉลุสองชั้นเชื่อมปีกกับหอกลาง
+  for(let f=1;f<=3;f++){box(22,.35,9,wh,0,Y+f*3.5-.17,11.5);box(22,.9,.14,new THREE.MeshLambertMaterial({map:latWhite(5)}),0,Y+f*3.5+.1,15.9)}
+  // หอกลาง: เสาสีม่วงอ่อนคู่ แผงอิฐแดงช่องรูกุญแจ ชั้นบนเป็นศาลาหลังคาปั้นหยาสีน้ำเงิน
+  [-4.4,4.4].forEach(x0=>box(2.8,14,6,lav,x0,Y,18));box(12,2.2,6,lav,0,Y+11.8,18);
+  box(6,4.6,.5,brick,0,Y+8.4,20.9);const kr=new THREE.Mesh(new THREE.RingGeometry(1.15,1.5,28),wh);kr.position.set(0,Y+10.2,21.2);g.add(kr);
+  const kd=new THREE.Mesh(new THREE.CircleGeometry(1.15,28),L(0x2a6e6a));kd.position.set(0,Y+10.2,21.17);g.add(kd);
+  const kt=add(new THREE.ConeGeometry(1.5,2.1,3),wh,0,Y+8.7,21.2);kt.rotation.z=Math.PI;kt.scale.z=.1;
+  for(let f=1;f<=2;f++){box(6,.3,5.6,wh,0,Y+f*3.5-.15,18);box(6,.9,.14,new THREE.MeshLambertMaterial({map:latWhite(1.5)}),0,Y+f*3.5+.1,20.7)}
+  box(11.4,.5,7.2,wh,0,Y+14,18);box(10.2,3,6.2,walls(10.2,6.2,1,0xf4f4f6,0),0,Y+14.5,18);rf(11.6,8,4.6,0x2a45c8,1.2,0,Y+17.5,18);
+  // ป้ายชื่อหน้าอาคาร
+  const dk=L(0x241f1a);box(6,1.5,.3,[dk,dk,dk,dk,new THREE.MeshLambertMaterial({map:textTex('บัณฑิตวิทยาลัย GRADUATE SCHOOL','#241f1a','#e8c767',20)}),dk],7,Y+.6,25);
+  ex=10}
+else if(b.k==='quran'){box(18,H,16,walls(18,16,3,b.c,0),-4,Y,0);box(18.6,.8,16.6,L(0x3f78c8),-4,Y+H,0);
   box(10,14,16,walls(10,16,4,0x1e3a8a,0),9,Y,0);
   [.75,-.75].forEach(r=>{add(new THREE.BoxGeometry(9,.4,4),L(0xe9e6da),-4,Y+H+3.4,0).rotation.z=r});
   box(3.2,3,.3,L(0x3a2f27),-4,Y,8.1);ex=6}
@@ -387,13 +627,14 @@ function build(b){const g=new THREE.Group(),H=b.h,Y=.4;let ex=4;
   else{rf(b.w,b.d,3.5,0xc9703a,4,0,Y+H,0);ex=3.5}
   const zf=b.d/2;box(3.2,3,.3,L(0x4a3a2a),0,Y,zf+.1);box(6,.5,5,L(0xe8e8e2),0,Y+4.4,zf+2.5);
   [-1,1].forEach(a=>add(new THREE.CylinderGeometry(.35,.35,4.4),L(0xf2f2ee),a*2.4,Y+2.2,zf+4.5))}
- g.position.set(b.x,0,b.z);S.add(g);
+ g.position.set(b.x,0,b.z);if(b.rotY)g.rotation.y=b.rotY;if(b.sk)g.scale.set(b.mir?-b.sk:b.sk,b.sy||1,b.sk);S.add(g);
  const l=label(b.n,b.i);l.position.set(b.x,Y+H+ex+4,b.z);S.add(l);LABS.push(l)}
-B.forEach(b=>{Object.assign(b,META[b.i]);b.h=b.k==='mos'?8:b.fl*3.5;build(b)});
+B.forEach(b=>{if(b.faceTo){const t=B.find(x=>String(x.i)===String(b.faceTo));b.rotY=Math.atan2(t.x-b.x,t.z-b.z)}});
+B.forEach(b=>{Object.assign(b,META[b.i]);b.h=b.k==='mos'?10:b.fl*3.5;build(b);if(b.sk){b.w*=b.sk;b.d*=b.sk}b.fd=b.d/2;if(b.rotY){const c=Math.abs(Math.cos(b.rotY)),n=Math.abs(Math.sin(b.rotY)),w=b.w,d=b.d;b.w=w*c+d*n;b.d=w*n+d*c}});
 // ต้นไม้ (สุ่มแบบคงที่)
 let sd=7;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;
-for(let k=0;k<160;k++){const x=(rnd()-.5)*700+150,z=(rnd()-.5)*600;
- if(B.some(b=>Math.abs(x-b.x)<b.w/2+6&&Math.abs(z-b.z)<b.d/2+6)||ROADS.some(r=>r.some((a,i)=>i&&dseg({x,z},r[i-1],a)<7))||Math.abs(x-FIELD.x)<60&&Math.abs(z-FIELD.z)<70)continue;
+for(let k=0;k<280;k++){const x=rnd()*820-100,z=rnd()*820-330;
+ if(Math.hypot(x-RB.x,z-RB.z)<RB.r+6||B.some(b=>Math.abs(x-b.x)<b.w/2+6&&Math.abs(z-b.z)<b.d/2+6)||ROADS.some(r=>r.some((a,i)=>i&&dseg({x,z},r[i-1],a)<7))||Math.abs(x-FIELD.x)<60&&Math.abs(z-FIELD.z)<70)continue;
  const t=new THREE.Mesh(new THREE.CylinderGeometry(.3,.4,3),new THREE.MeshLambertMaterial({color:0x6b4a2b}));t.position.set(x,1.5,z);
  const f=new THREE.Mesh(new THREE.SphereGeometry(2.6,8,6),new THREE.MeshLambertMaterial({color:0x2f7a3a}));f.position.set(x,5,z);S.add(t,f)}
 
@@ -437,7 +678,7 @@ q.oninput=renderList;q.addEventListener('keydown',e=>e.stopPropagation());
 const mm=document.getElementById('mm'),g=mm.getContext('2d');
 function drawMap(){const W=260,sc=.42;g.fillStyle='#8fbf7a';g.fillRect(0,0,W,W);
  const X=x=>W/2+(x-P.x)*sc,Z=z=>W/2+(z-P.z)*sc;
- g.strokeStyle='#777';g.lineWidth=3;ROADS.forEach(r=>{g.beginPath();r.forEach((p,i)=>i?g.lineTo(X(p.x),Z(p.z)):g.moveTo(X(p.x),Z(p.z)));g.stroke()});g.fillStyle='#b5533c';g.fillRect(X(FIELD.x)-52*sc,Z(FIELD.z)-64*sc,104*sc,128*sc);g.fillStyle='#4e9a3e';g.fillRect(X(FIELD.x)-40*sc,Z(FIELD.z)-52*sc,80*sc,104*sc);g.strokeStyle='#d8d2c0';g.lineWidth=2;PATHS.forEach(p=>{g.beginPath();g.moveTo(X(p[0].x),Z(p[0].z));g.lineTo(X(p[1].x),Z(p[1].z));g.stroke()});
+ g.strokeStyle='#777';g.lineWidth=3;ROADS.forEach(r=>{g.beginPath();r.forEach((p,i)=>i?g.lineTo(X(p.x),Z(p.z)):g.moveTo(X(p.x),Z(p.z)));g.stroke()});g.beginPath();g.arc(X(RB.x),Z(RB.z),(RB.r+RB.ri)/2*sc,0,7);g.lineWidth=(RB.r-RB.ri+1)*sc;g.strokeStyle='#777';g.stroke();g.fillStyle='#7fb36b';g.beginPath();g.arc(X(RB.x),Z(RB.z),RB.ri*sc,0,7);g.fill();g.lineWidth=3;g.fillStyle='#b5533c';g.fillRect(X(FIELD.x)-52*sc,Z(FIELD.z)-64*sc,104*sc,128*sc);g.fillStyle='#4e9a3e';g.fillRect(X(FIELD.x)-40*sc,Z(FIELD.z)-52*sc,80*sc,104*sc);g.strokeStyle='#d8d2c0';g.lineWidth=2;PATHS.forEach(p=>{g.beginPath();g.moveTo(X(p[0].x),Z(p[0].z));g.lineTo(X(p[1].x),Z(p[1].z));g.stroke()});
  B.forEach(b=>{g.fillStyle=visited.has(b)?'#f08a24':'#555';g.fillRect(X(b.x)-b.w*sc/2,Z(b.z)-b.d*sc/2,b.w*sc,b.d*sc);
   g.fillStyle='#fff';g.font='bold 16px sans-serif';g.fillText(b.i,X(b.x)-5,Z(b.z)+5)});
  if(target){g.strokeStyle='#e33';g.lineWidth=2;g.beginPath();g.moveTo(W/2,W/2);g.lineTo(X(target.x),Z(target.z));g.stroke()}
@@ -455,16 +696,35 @@ addEventListener('resize',resize);resize();
 
 function mkChar(shirt,pack){const g=new THREE.Group();[[new THREE.CylinderGeometry(.35,.4,1,10),shirt,1.0,0],[new THREE.CylinderGeometry(.28,.28,.6,8),0x2b2f3a,.3,0],
  [new THREE.SphereGeometry(.3,12,10),0xf0c8a0,1.8,0],[new THREE.SphereGeometry(.32,12,10),0x222222,1.86,-.09],[new THREE.BoxGeometry(.5,.6,.25),pack,1.1,-.42]].forEach(a=>{const m=new THREE.Mesh(a[0],L(a[1]));m.position.set(0,a[2],a[3]);g.add(m)});g.scale.setScalar(1.25);return g}
-const PA=mkChar(0x2a5bd7,0x222222);S.add(PA);
 // ===== นักศึกษาไกด์ =====
-const G=new THREE.Group(),mt=c=>new THREE.MeshLambertMaterial({color:c});
-[[new THREE.CylinderGeometry(.35,.4,1,10),0x1f8a8a,1.0,0,0],[new THREE.CylinderGeometry(.28,.28,.6,8),0x2b2f3a,.3,0,0],
- [new THREE.SphereGeometry(.3,12,10),0xf0c8a0,1.8,0,0],[new THREE.SphereGeometry(.32,12,10),0xffffff,1.85,0,-.09],
- [new THREE.BoxGeometry(.5,.6,.25),0xf08a24,1.1,0,-.42]].forEach(a=>{const m=new THREE.Mesh(a[0],mt(a[1]));m.position.set(a[3],a[2],a[4]);G.add(m)});
+const mt=c=>new THREE.MeshLambertMaterial({color:c});
+function mkStudent(){const G=new THREE.Group();
+// นักศึกษาชายในเครื่องแบบมหาวิทยาลัยฟาฏอนี: เสื้อเชิ้ตขาวคอจีน แขนยาว กระเป๋าอกซ้าย เข็มตราสัญลักษณ์อกขวา กางเกงสีเขียวขี้ม้า รองเท้าหนังดำ สะพายกระเป๋าดำ
+const wht=mt(0xf6f6f2),skin=mt(0xf0c8a0),olive=mt(0x5c5a2a),blk=mt(0x16161a);
+const gm=(geo,m,x,y,z,par)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);(par||G).add(o);return o};
+const mkLeg=x=>{const p=new THREE.Group();p.position.set(x,.78,0);G.add(p);gm(new THREE.CylinderGeometry(.13,.12,.72,10),olive,0,-.4,0,p);gm(new THREE.BoxGeometry(.2,.1,.34),blk,0,-.76,.06,p);return p};
+G.legL=mkLeg(.14);G.legR=mkLeg(-.14);
+gm(new THREE.CylinderGeometry(.33,.35,.78,14),wht,0,1.15,0);                                   // เสื้อ
+gm(new THREE.CylinderGeometry(.17,.19,.1,12),wht,0,1.58,0);                                    // คอจีน
+gm(new THREE.CylinderGeometry(.09,.1,.12,8),skin,0,1.66,0);
+const mkArm=x=>{const p=new THREE.Group();p.position.set(x,1.5,0);G.add(p);const a=gm(new THREE.CylinderGeometry(.085,.075,.68,10),wht,0,-.34,0,p);gm(new THREE.CylinderGeometry(.078,.078,.07,10),wht,0,-.67,0,p);gm(new THREE.SphereGeometry(.075,8,8),skin,0,-.74,0,p);return p};
+G.armL=mkArm(.43);G.armR=mkArm(-.43);
+gm(new THREE.SphereGeometry(.27,14,12),skin,0,1.86,0);                                         // หัว
+const hr=gm(new THREE.SphereGeometry(.285,14,12,0,Math.PI*2,0,Math.PI*.56),blk,0,1.88,-.02);hr.rotation.x=-.12;   // ผมดำ
+gm(new THREE.BoxGeometry(.015,.62,.02),mt(0xdcdcd6),0,1.2,.345);                                // แถวกระดุม
+for(let k=0;k<6;k++)gm(new THREE.SphereGeometry(.024,6,6),mt(0xe9e9e4),0,1.46-k*.12,.35);
+gm(new THREE.BoxGeometry(.13,.14,.02),mt(0xe6e6e0),.15,1.3,.345);                               // กระเป๋าอกซ้าย
+gm(new THREE.SphereGeometry(.034,8,8),mt(0xd6a92b),-.14,1.36,.35);                               // เข็มตราสัญลักษณ์อกขวา
+// กระเป๋าสะพายสีดำ (สายพาดเฉียงจากไหล่ขวาไปสะโพกซ้าย)
+[.355,-.355].forEach(z=>{const st=gm(new THREE.BoxGeometry(.07,.98,.03),blk,.09,1.17,z);st.rotation.z=.73});
+gm(new THREE.BoxGeometry(.2,.36,.4),blk,.46,.86,-.04);gm(new THREE.BoxGeometry(.21,.12,.42),mt(0x0c0c0f),.46,1.0,-.04);gm(new THREE.SphereGeometry(.025,6,6),mt(0xb9b9b9),.57,.93,-.04);
+return G}
+const PA=mkStudent();PA.scale.setScalar(1.25);S.add(PA);
+const G=mkStudent();
 const gl=label('น้องไกด์','★');gl.position.y=3.4;gl.scale.set(8,1.5,1);G.add(gl);G.scale.setScalar(1.25);G.visible=false;S.add(G);
 const sayEl=document.getElementById('say'),tb=document.getElementById('tour');let tour=null,sayT=0;
 const say=(t,ms)=>{sayEl.style.display=t?'block':'none';sayEl.textContent=t||'';clearTimeout(sayT);if(ms)sayT=setTimeout(()=>say(''),ms)};
-const stopPt=b=>({x:b.x,z:b.z+b.d/2+9});
+const stopPt=b=>frontPt(b,9);
 function collide(o){B.forEach(b=>{const hx=b.w/2+1.2,hz=b.d/2+1.2,dx=o.x-b.x,dz=o.z-b.z;
  if(Math.abs(dx)<hx&&Math.abs(dz)<hz){if(hx-Math.abs(dx)<hz-Math.abs(dz))o.x=b.x+Math.sign(dx||1)*hx;else o.z=b.z+Math.sign(dz||1)*hz}})}
 const resetTb=()=>tb.textContent='🚶 เริ่มทัวร์กับน้องไกด์';
@@ -473,20 +733,20 @@ tb.onclick=()=>{if(tour){tour=null;G.visible=false;say('');resetTb();return}
  while(rest.length){rest.sort((a,b)=>Math.hypot(a.x-c.x,a.z-c.z)-Math.hypot(b.x-c.x,b.z-c.z));c=rest.shift();order.push(c)}
  G.position.set(P.x-Math.sin(P.yaw)*5,0,P.z-Math.cos(P.yaw)*5);G.visible=true;
  tour={order,idx:0,st:'walk',t:0,stuck:0,wait:0};target=order[0];renderList();tb.textContent='⏹ หยุดทัวร์';
- say('สวัสดีค่ะ หนูเป็นนักศึกษาไกด์ ตามหนูมานะคะ! จุดแรกคือ '+order[0].n)};
+ say('สวัสดีครับ ผมเป็นนักศึกษาไกด์ ตามผมมานะครับ! จุดแรกคือ '+order[0].n)};
 function guideUpdate(dt){if(!tour)return;const b=tour.order[tour.idx],sp=stopPt(b),g=G.position,dP=Math.hypot(P.x-g.x,P.z-g.z);
  if(tour.st==='walk'){
-  if(dP>28){if(!tour.wait){tour.wait=1;say('รอตามมาด้วยนะคะ~')}G.rotation.y=Math.atan2(P.x-g.x,P.z-g.z);return}
-  if(tour.wait){tour.wait=0;say('ไปต่อค่ะ → '+b.n)}
+  if(dP>28){if(!tour.wait){tour.wait=1;say('รอตามมาด้วยนะครับ~')}G.rotation.y=Math.atan2(P.x-g.x,P.z-g.z);return}
+  if(tour.wait){tour.wait=0;say('ไปต่อครับ → '+b.n)}
   const dx=sp.x-g.x,dz=sp.z-g.z,d=Math.hypot(dx,dz);
   if(d<1.5){tour.st='talk';tour.t=0;G.position.y=0;say(`${b.i}. ${b.n} — ${b.t}`)}
   else{const s=Math.min(4.5*dt,d),ox=g.x,oz=g.z;g.x+=dx/d*s;g.z+=dz/d*s;collide(g);G.rotation.y=Math.atan2(dx,dz);
-   g.y=Math.abs(Math.sin(performance.now()/160))*.12;
+   g.y=Math.abs(Math.sin(performance.now()/160))*.12;{const w=Math.sin(performance.now()/160)*.55;G.legL.rotation.x=w;G.legR.rotation.x=-w;G.armL.rotation.x=-w*.8;G.armR.rotation.x=w*.8}
    if(Math.hypot(g.x-ox,g.z-oz)<s*.3){tour.stuck+=dt;if(tour.stuck>2.5){g.x=sp.x;g.z=sp.z;tour.stuck=0}}else tour.stuck=0}
- }else{tour.t+=dt;G.rotation.y=Math.atan2(P.x-g.x,P.z-g.z);
+ }else{tour.t+=dt;G.legL.rotation.x=G.legR.rotation.x=G.armL.rotation.x=G.armR.rotation.x=0;G.rotation.y=Math.atan2(P.x-g.x,P.z-g.z);
   if(tour.t>7&&dP<30){tour.idx++;
-   if(tour.idx>=tour.order.length){tour=null;resetTb();say('ครบทุกอาคารแล้วค่ะ ขอบคุณที่มาเที่ยวด้วยกันนะคะ 🎉',8000)}
-   else{tour.st='walk';target=tour.order[tour.idx];renderList();say('ไปต่อกันค่ะ → '+target.n)}}}}
+   if(tour.idx>=tour.order.length){tour=null;resetTb();say('ครบทุกอาคารแล้วครับ ขอบคุณที่มาเที่ยวด้วยกันนะครับ 🎉',8000)}
+   else{tour.st='walk';target=tour.order[tour.idx];renderList();say('ไปต่อกันครับ → '+target.n)}}}}
 
 let last=performance.now(),acc=0;
 function loop(t){requestAnimationFrame(loop);const dt=Math.min((t-last)/1000,.05);last=t;
@@ -498,7 +758,7 @@ function loop(t){requestAnimationFrame(loop);const dt=Math.min((t-last)/1000,.05
   if(Math.abs(dx)<hx&&Math.abs(dz)<hz){if(hx-Math.abs(dx)<hz-Math.abs(dz))P.x=b.x+Math.sign(dx||1)*hx;else P.z=b.z+Math.sign(dz||1)*hz}});
 
  if(f||s){const ta=Math.atan2(-sy*f+cy*s,-cy*f-sy*s);let d=ta-P.face;d=Math.atan2(Math.sin(d),Math.cos(d));P.face+=d*Math.min(1,dt*12)}
- PA.position.set(P.x,(f||s)?Math.abs(Math.sin(t/120))*.12:0,P.z);PA.rotation.y=P.face;guideUpdate(dt);
+ PA.position.set(P.x,(f||s)?Math.abs(Math.sin(t/120))*.12:0,P.z);{const mv=(f||s)?Math.sin(t/120)*.55:0;PA.legL.rotation.x=mv;PA.legR.rotation.x=-mv;PA.armL.rotation.x=-mv*.8;PA.armR.rotation.x=mv*.8}PA.rotation.y=P.face;guideUpdate(dt);
 
  if(keys.Equal||keys.NumpadAdd||keys.PageUp)Zt=clampZ(Zt*(1-1.3*dt));if(keys.Minus||keys.NumpadSubtract||keys.PageDown)Zt=clampZ(Zt*(1+1.3*dt));
  Zd+=(Zt-Zd)*Math.min(1,dt*8);
