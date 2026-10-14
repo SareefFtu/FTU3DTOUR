@@ -247,7 +247,8 @@ button,input{font-family:inherit}
 <div class="p" id="card"></div>
 <div id="joy"><i></i></div>
 <div class="p" id="hint">WASD = เดิน · ลากเมาส์ = หมุนกล้อง · ลูกกลิ้งเมาส์ / + − = ซูม · M = มุมสูงดูทั้งมหาวิทยาลัย · Shift = วิ่ง · F = ไปที่เป้าหมาย</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="three.min.js"></script>
+<script>window.THREE||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>')</script>
 <script>
 // แหล่งอ้างอิงตำแหน่ง: Google Maps ของมหาวิทยาลัยฟาฏอนี + ภาพ Satellite ที่แนบมา
 // จุดอ้างอิงหลักจากลิงก์ล่าสุด: 6.5986936, 101.3435207 (North-up)
@@ -335,6 +336,10 @@ const ROADS=[
  let tx=-1,tz=0;if(best&&best.d<30){g1.x=best.q.x;g1.z=best.q.z;const m=Math.hypot(best.t.x,best.t.z);tx=best.t.x/m;tz=best.t.z/m;if(tx>0){tx=-tx;tz=-tz}}
  g1.rotY=Math.atan2(tx,tz);g1.sp={x:g1.x+tx*9,z:g1.z+tz*9};g1.start={x:g1.x+tx*17,z:g1.z+tz*17};})();
 {const k=ROADS.findIndex(r=>Math.abs(r[0].x-38)<1&&Math.abs(r[0].z-294)<1);if(k>=0)ROADS[k]=ROADS[k].filter(p=>p.z<297)}
+// แก้ถนนหน้าประตู: ถนนทางเข้า(ROADS[0])เริ่มที่สามแยกถนนสาธารณะหน้ามหาวิทยาลัย (T-junction) ไม่ตัดผ่านเป็นกากบาท
+(function(){const g=B.find(b=>b.i==='G1'),ox=Math.sin(g.rotY),oz=Math.cos(g.rotY),J={x:g.x+ox*20,z:g.z+oz*20},ix=-ox,iz=-oz;
+ ROADS[0]=[J].concat(ROADS[0].filter(p=>(p.x-J.x)*ix+(p.z-J.z)*iz>3));
+ const ux=.755,uz=-.656,pr=[];for(let q=-36;q<=36;q+=3)pr.push({x:J.x+ux*q,z:J.z+uz*q});ROADS[1]=pr})();
 const frontPt=(b,k)=>{const r=b.rotY||0,f=(b.fd||b.d/2)+k;return {x:b.x+Math.sin(r)*f,z:b.z+Math.cos(r)*f}};
 // ===== คลอง: ข้อมูลและการตรวจว่าอยู่ในน้ำ =====
 const CANAL={"secs":[{"center":[[64.0,402.0,6.0],[64.5,398.0,6.0],[65.0,394.1,6.0],[65.6,390.1,6.0],[66.3,386.1,6.0],[67.0,382.1,6.0],[67.8,378.1,6.0],[68.6,374.1,6.0],[69.3,370.1,6.0],[70.0,366.0,6.0],[70.6,362.0,6.0],[71.1,358.0,6.0],[71.5,353.9,6.0],[71.8,349.7,6.0],[72.0,345.5,6.0],[72.2,341.3,6.0],[72.4,337.0,6.0],[72.5,332.7,6.0],[72.5,328.4,6.0],[72.4,324.1,6.0],[72.1,319.9,6.0],[71.6,315.8,6.0],[70.8,311.9,6.0],[68.1,308.5,6.0],[63.3,307.2,6.0],[58.8,306.3,6.0],[54.4,305.5,6.0],[50.1,304.7,6.0],[45.9,304.0,6.0],[41.8,303.3,6.0],[37.7,302.4,6.0],[33.6,301.4,6.0],[29.7,300.0,6.0],[26.2,298.3,6.0],[23.1,295.8,6.0]],"polys":[{"outline":[[19.5,296.1],[24.5,300.8],[32.7,304.2],[66.5,311.2],[68.0,312.9],[68.6,316.3],[69.5,330.5],[68.5,353.6],[67.1,365.6],[61.3,399.1],[60.8,399.5],[57.7,399.3],[40.5,404.4],[40.5,425.9],[53.4,434.5],[68.4,438.0],[83.5,438.8],[96.4,436.7],[100.7,425.9],[77.1,401.0],[67.9,400.2],[67.3,399.7],[73.3,364.5],[74.9,347.8],[75.3,321.8],[73.8,311.4],[72.7,308.8],[69.7,306.0],[66.7,304.9],[36.4,299.1],[30.9,297.3],[26.0,294.4],[19.0,293.3],[18.9,294.8]],"holes":[]}]},{"center":[[17.7,282.8,6.0],[17.5,278.7,6.0],[17.8,274.6,6.0],[18.4,270.5,6.0],[19.2,266.5,6.0],[20.3,262.6,6.0],[21.6,258.7,6.0],[22.9,254.7,6.0],[24.0,250.7,6.0],[25.2,246.7,6.0],[26.3,242.7,6.0],[27.5,238.8,6.0],[28.9,235.0,6.0],[30.4,231.3,6.0],[31.9,227.6,6.0],[33.3,223.9,6.0],[34.5,219.9,6.0],[35.4,215.9,6.0],[36.1,211.7,6.0],[36.8,207.4,6.0],[37.5,203.1,6.0],[38.2,198.8,6.0],[38.9,194.5,6.0],[39.6,190.2,6.0],[40.3,186.0,6.0],[40.9,181.7,6.0],[41.5,177.5,6.0],[42.1,173.2,6.0],[42.7,169.0,6.0],[43.2,164.7,6.0],[43.8,160.5,6.0],[44.5,156.4,6.0],[45.4,152.5,6.0],[46.8,148.9,6.0],[48.7,145.8,6.0],[51.3,143.2,6.0],[54.4,141.3,6.0],[57.9,139.9,6.0],[61.5,138.9,6.0],[64.8,137.8,6.0],[67.7,136.3,6.0],[69.7,134.2,6.0]],"polys":[{"outline":[[14.5,278.8],[15.0,284.0],[20.0,284.8],[20.7,282.9],[21.0,273.0],[22.6,265.4],[29.8,241.6],[35.5,226.7],[37.9,218.5],[43.9,182.2],[47.0,159.0],[48.9,151.7],[51.1,147.7],[53.2,145.6],[57.2,143.4],[65.8,140.6],[69.2,138.9],[72.2,135.9],[72.7,133.7],[66.7,133.2],[63.8,135.0],[53.0,138.7],[47.7,142.4],[45.2,145.6],[43.3,149.5],[41.1,158.0],[38.0,181.3],[32.0,217.2],[29.8,224.7],[24.1,239.8],[16.9,263.7],[15.1,272.1]],"holes":[]}]},{"center":[[71.3,124.0,6.0],[71.1,119.8,6.0],[71.1,115.6,6.0],[71.2,111.5,6.0],[71.4,107.3,5.9],[71.6,103.1,5.9],[71.9,99.0,5.9],[72.2,94.8,5.9],[72.5,90.6,6.0],[72.9,86.4,6.1],[73.4,82.2,6.2],[73.9,78.1,6.3],[74.5,74.0,6.4],[75.1,69.9,6.6],[75.8,65.8,6.8],[76.4,61.8,7.0],[78.0,57.9,7.2]],"polys":[{"outline":[[68.1,119.8],[68.4,124.7],[74.0,125.2],[74.3,109.5],[75.3,92.9],[77.4,76.5],[81.8,53.0],[80.8,52.6],[78.6,52.8],[75.4,55.3],[73.6,58.4],[73.0,61.1],[69.7,88.2]],"holes":[]}]},{"center":[[93.1,48.3,8.1],[96.4,44.8,8.5],[97.6,40.8,9.0],[98.6,36.9,9.6],[99.6,32.9,10.3],[100.6,29.0,11.1],[101.7,25.1,12.0],[102.9,21.2,13.0],[104.2,17.4,14.0],[105.6,13.5,16.6],[107.1,9.7,19.5],[108.5,5.8,22.0],[109.8,1.8,24.0],[110.8,-2.2,25.6],[111.3,-6.3,26.0],[111.7,-10.5,24.4],[112.1,-14.8,21.5],[112.5,-19.1,18.7],[113.0,-23.4,15.9],[113.6,-27.7,13.1],[114.1,-32.2,11.1],[114.7,-37.3,9.6]],"polys":[{"outline":[[90.8,51.6],[93.1,52.3],[95.3,51.6],[98.2,49.5],[100.0,47.1],[106.0,30.5],[109.8,21.5],[117.7,11.9],[121.8,4.6],[123.3,0.6],[124.3,-5.3],[124.0,-10.9],[120.1,-27.8],[119.5,-37.0],[110.1,-38.7],[107.9,-31.0],[99.7,-13.3],[98.2,-5.5],[97.2,16.6]],"holes":[]}]},{"center":[[114.7,-47.6,8.0],[114.3,-52.5,7.3],[114.1,-54.8,6.8],[113.9,-56.9,6.3],[113.6,-59.6,6.0],[113.4,-63.0,5.9],[113.2,-66.8,5.9],[113.2,-70.9,6.0],[113.4,-75.1,6.0],[113.7,-79.4,6.0],[114.0,-83.6,6.0],[114.5,-87.8,6.0],[114.9,-92.0,6.0],[115.3,-96.1,6.0],[115.7,-100.2,6.0],[116.0,-104.0,6.0]],"polys":[{"outline":[[110.2,-68.8],[110.7,-54.4],[115.4,-46.4],[116.7,-46.2],[117.5,-55.1],[116.3,-63.1],[116.2,-70.8],[118.7,-100.7],[122.2,-103.8],[123.5,-108.0],[123.2,-110.2],[121.8,-112.8],[119.5,-114.6],[116.7,-115.5],[113.8,-115.2],[111.3,-113.8],[109.4,-111.5],[108.5,-108.7],[109.4,-104.5],[112.7,-100.9],[110.7,-79.6]],"holes":[]}]},{"center":[],"polys":[{"outline":[[42.9,206.0],[42.1,206.6],[41.0,213.3],[41.1,258.5],[41.8,259.0],[65.0,258.9],[65.5,258.2],[65.4,206.5],[64.7,206.0]],"holes":[]}]}],"ponds":[[[40.5,404.5],[40.5,425.9],[40.5,425.9],[40.6,426.0],[53.4,434.5],[53.4,434.5],[53.5,434.6],[68.4,438.0],[68.5,438.0],[68.5,438.0],[83.5,438.8],[83.5,438.8],[83.6,438.8],[96.4,436.7],[96.4,436.7],[96.4,436.6],[100.7,426.0],[100.7,425.9],[100.7,425.9],[88.7,413.0],[88.7,413.0],[77.1,401.0],[77.1,401.0],[77.0,401.0],[57.8,399.3],[57.7,399.3],[57.7,399.3],[40.6,404.4],[40.5,404.4]],[[123.5,-108.0],[123.5,-108.7],[123.4,-109.5],[123.2,-110.2],[122.9,-110.9],[122.6,-111.5],[122.2,-112.2],[121.8,-112.8],[121.3,-113.3],[120.8,-113.8],[120.2,-114.2],[119.5,-114.6],[118.9,-114.9],[118.2,-115.2],[117.5,-115.4],[116.7,-115.5],[116.0,-115.5],[115.3,-115.5],[114.5,-115.4],[113.8,-115.2],[113.1,-114.9],[112.5,-114.6],[111.8,-114.2],[111.2,-113.8],[110.7,-113.3],[110.2,-112.8],[109.8,-112.2],[109.4,-111.5],[109.1,-110.9],[108.8,-110.2],[108.6,-109.5],[108.5,-108.7],[108.5,-108.0],[108.5,-107.3],[108.6,-106.5],[108.8,-105.8],[109.1,-105.1],[109.4,-104.5],[109.8,-103.8],[110.2,-103.2],[110.7,-102.7],[111.2,-102.2],[111.8,-101.8],[112.5,-101.4],[113.1,-101.1],[113.8,-100.8],[114.5,-100.6],[115.3,-100.5],[116.0,-100.5],[116.7,-100.5],[117.5,-100.6],[118.2,-100.8],[118.9,-101.1],[119.5,-101.4],[120.2,-101.8],[120.8,-102.2],[121.3,-102.7],[121.8,-103.2],[122.2,-103.8],[122.6,-104.5],[122.9,-105.1],[123.2,-105.8],[123.4,-106.5],[123.5,-107.3]],[[42.9,206.0],[42.1,206.6],[41.0,213.3],[41.1,258.5],[41.8,259.0],[65.0,258.9],[65.5,258.2],[65.4,206.5],[64.7,206.0]]],"gaps":[{"x":19.787116794886728,"z":288.55170709291474,"tx":-0.3329284692537802,"tz":-0.9429520848698171,"w":6.0},{"x":70.49843448933797,"z":129.07556164462466,"tx":0.12623788663707308,"tz":-0.9919999979724826,"w":6.0},{"x":86.55535482162335,"z":52.22918319900333,"tx":0.8524312450073328,"tz":-0.5228393372110103,"w":7.610532407407407},{"x":114.67829685714163,"z":-42.47909955916579,"tx":0.06496590889983056,"tz":-0.9978874839784387,"w":9.037037037037038}],"labels":[{"t":"สระเก็บน้ำ (หลังคณะวิทย์ฯ)","x":68.2,"z":419.9},{"t":"คลองระบายน้ำ","x":72,"z":345},{"t":"สระน้ำหลังมัสยิด","x":53.3,"z":232.6}],"bridges":[{"x":37.7,"z":302.4,"ux":0.223,"uz":-0.975,"len":11.0}]};
@@ -370,8 +375,62 @@ const gnd=new THREE.Mesh(new THREE.ShapeGeometry(gShape),new THREE.MeshLambertMa
 gnd.rotation.x=-Math.PI/2;S.add(gnd);
 const rm=new THREE.MeshLambertMaterial({color:0x6e7176}),pm=new THREE.MeshLambertMaterial({color:0xbab5a8});
 const strip=(a,b,w,m,y)=>{const l2=Math.hypot(b.x-a.x,b.z-a.z),o=new THREE.Mesh(new THREE.BoxGeometry(l2+(w>5?3:0),.12,w),m);o.position.set((a.x+b.x)/2,y,(a.z+b.z)/2);o.rotation.y=-Math.atan2(b.z-a.z,b.x-a.x);S.add(o)};
-ROADS.forEach(r=>{for(let i=0;i<r.length-1;i++)strip(r[i],r[i+1],7,rm,.06)});
+ROADS.forEach((r,ri)=>{if(ri===0)return;for(let i=0;i<r.length-1;i++)strip(r[i],r[i+1],7,rm,.06)});
 PATHS.forEach(p=>strip(p[0],p[1],3.5,pm,.09));
+// ===== ถนนทางเข้าแบบแยกช่องทาง IN/OUT + เส้นจราจรทั้งมหาวิทยาลัย =====
+(function(){
+ const MP=(c,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2},o||{}));
+ const mAsp=MP(0x6e7176),mW=MP(0xf4f4ee),mY=MP(0xf2c230),mR=MP(0xc23b3b),mGr=MP(0x5aa648),mCb=MP(0xcfcac0);
+ const mk=()=>({p:[],i:[]});
+ const quad=(A,a,b,c,d,y)=>{const k=A.p.length/3;A.p.push(a[0],y,a[1],b[0],y,b[1],c[0],y,c[1],d[0],y,d[1]);A.i.push(k,k+1,k+2,k,k+2,k+3)};
+ const tri=(A,a,b,c,y)=>{const k=A.p.length/3;A.p.push(a[0],y,a[1],b[0],y,b[1],c[0],y,c[1]);A.i.push(k,k+1,k+2)};
+ const flush=(A,m)=>{if(!A.p.length)return;const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(A.p,3));g.setIndex(A.i);g.computeVertexNormals();S.add(new THREE.Mesh(g,m))};
+ // สี่เหลี่ยมวางตามทิศ (tx,tz) ยาว len กว้าง wid (ด้านข้างซ้าย = (tz,-tx))
+ const rect=(A,cx,cz,tx,tz,len,wid,y)=>{const nx=tz,nz=-tx,a=len/2,b=wid/2;quad(A,[cx-tx*a-nx*b,cz-tz*a-nz*b],[cx+tx*a-nx*b,cz+tz*a-nz*b],[cx+tx*a+nx*b,cz+tz*a+nz*b],[cx-tx*a+nx*b,cz-tz*a+nz*b],y)};
+ const polyLine=(A,P,off,w,y,dash,gap,skip,s0)=>{let s=s0||0;for(let i=0;i<P.length-1;i++){const a=P[i],b=P[i+1],dx=b.x-a.x,dz=b.z-a.z,L=Math.hypot(dx,dz);if(L<1e-6)continue;const tx=dx/L,tz=dz/L,nx=tz,nz=-tx,segs=[];
+   if(!dash)segs.push([0,L]);else{const per=dash+gap;for(let k=Math.floor(s/per);k*per<s+L;k++){const a0=Math.max(k*per,s),a1=Math.min(k*per+dash,s+L);if(a1>a0)segs.push([a0-s,a1-s])}}
+   segs.forEach(([u0,u1])=>{const p0={x:a.x+tx*u0,z:a.z+tz*u0},p1={x:a.x+tx*u1,z:a.z+tz*u1};if(skip&&(skip(p0)||skip(p1)))return;const o0=off-w/2,o1=off+w/2;
+    quad(A,[p0.x+nx*o0,p0.z+nz*o0],[p1.x+nx*o0,p1.z+nz*o0],[p1.x+nx*o1,p1.z+nz*o1],[p0.x+nx*o1,p0.z+nz*o1],y)});s+=L}};
+ const offs=(P,o)=>P.map((p,i)=>{const a=P[Math.max(0,i-1)],b=P[Math.min(P.length-1,i+1)];let tx=b.x-a.x,tz=b.z-a.z;const m=Math.hypot(tx,tz)||1;tx/=m;tz/=m;return{x:p.x+tz*o,z:p.z-tx*o,tx,tz}});
+ const ribbon=(A,P,w,y)=>{for(let i=0;i<P.length-1;i++){const a=P[i],b=P[i+1];quad(A,[a.x-a.tz*w/2,a.z+a.tx*w/2],[b.x-b.tz*w/2,b.z+b.tx*w/2],[b.x+b.tz*w/2,b.z-b.tx*w/2],[a.x+a.tz*w/2,a.z-a.tx*w/2],y)}};
+ const wall=(A,P,o,y0,y1)=>{const Q=offs(P,o);for(let i=0;i<Q.length-1;i++){const a=Q[i],b=Q[i+1],k=A.p.length/3;A.p.push(a.x,y0,a.z,b.x,y0,b.z,b.x,y1,b.z,a.x,y1,a.z);A.i.push(k,k+1,k+2,k,k+2,k+3)}};
+ const RBB=ROADS.map(r=>{let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;r.forEach(p=>{x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);z0=Math.min(z0,p.z);z1=Math.max(z1,p.z)});return[x0,x1,z0,z1]});
+ const nearOther=(p,ri,th)=>{if(Math.hypot(p.x-RB.x,p.z-RB.z)<RB.r+2.5)return true;for(let j=0;j<ROADS.length;j++){if(j===ri)continue;const t=j===0?10.4:th,b=RBB[j];if(p.x<b[0]-t||p.x>b[1]+t||p.z<b[2]-t||p.z>b[3]+t)continue;const r=ROADS[j];for(let i=1;i<r.length;i++)if(dseg(p,r[i-1],r[i])<t)return true}return false};
+ const Aw=mk(),Ay=mk(),Ar=mk(),Aa=mk(),Ac=mk(),Ag=mk(),Am=mk();
+ const len=P=>{let s=0;for(let i=1;i<P.length;i++)s+=Math.hypot(P[i].x-P[i-1].x,P[i].z-P[i-1].z);return s};
+ const at=(P,s)=>{let u=0;for(let i=1;i<P.length;i++){const L=Math.hypot(P[i].x-P[i-1].x,P[i].z-P[i-1].z);if(u+L>=s){const t=(s-u)/L,tx=(P[i].x-P[i-1].x)/L,tz=(P[i].z-P[i-1].z)/L;return{x:P[i-1].x+(P[i].x-P[i-1].x)*t,z:P[i-1].z+(P[i].z-P[i-1].z)*t,tx,tz}}u+=L}const e=P[P.length-1],a=P[P.length-2],L=Math.hypot(e.x-a.x,e.z-a.z)||1;return{x:e.x,z:e.z,tx:(e.x-a.x)/L,tz:(e.z-a.z)/L}};
+ const arrow=(A,x,z,tx,tz,y)=>{const nx=tz,nz=-tx;rect(A,x-tx*.4,z-tz*.4,tx,tz,1.6,.3,y);tri(A,[x+tx*.4+nx*.6,z+tz*.4+nz*.6],[x+tx*.4-nx*.6,z+tz*.4-nz*.6],[x+tx*1.8,z+tz*1.8],y)};
+ // --- ถนนทางเข้าหลัก: สองคาร์ริจเวย์ + เกาะกลางปลูกต้นไม้ ---
+ const R0=ROADS[0].filter(p=>Math.hypot(p.x-RB.x,p.z-RB.z)>=RB.r-.5),C0=offs(R0,0),L0=len(R0),OFF=5.3,CW=7.8;
+ const IN=offs(R0,OFF),OUT=offs(R0,-OFF);
+ ribbon(Aa,IN,CW,.122);ribbon(Aa,OUT,CW,.122);ribbon(Ag,C0,2.8,.3);wall(Ac,R0,1.4,.12,.3);wall(Ac,R0,-1.4,.12,.3);
+ polyLine(Ar,R0,1.4,.3,.305,1.5,1.5,null,0);polyLine(Ar,R0,-1.4,.3,.305,1.5,1.5,null,0);polyLine(Aw,R0,1.4,.3,.305,1.5,1.5,null,1.5);polyLine(Aw,R0,-1.4,.3,.305,1.5,1.5,null,1.5);
+ const ringSkip=p=>Math.hypot(p.x-RB.x,p.z-RB.z)<RB.r+1.5;
+ [[OFF,1],[-OFF,-1]].forEach(([o])=>{polyLine(Aw,R0,o+3.9-.35,.18,.13,0,0,ringSkip);polyLine(Aw,R0,o-3.9+.35,.18,.13,0,0,ringSkip);polyLine(Aw,R0,o,.15,.13,3,6,ringSkip)});
+ // ลูกศรบอกทิศ: ฝั่งเหนือ(ซ้ายของทิศเข้า)=ขาเข้า ฝั่งใต้=ขาออก (ขับชิดซ้าย)
+ [34,60,95,L0-28].forEach(s=>{if(s<30||s>L0-12)return;const q=at(R0,s);[OFF+1.95,OFF-1.95].forEach(o=>arrow(Aw,q.x+q.tz*o,q.z-q.tx*o,q.tx,q.tz,.133));[-OFF+1.95,-OFF-1.95].forEach(o=>arrow(Aw,q.x+q.tz*o,q.z-q.tx*o,-q.tx,-q.tz,.133))});
+ {const q=at(R0,4.5);rect(Aw,q.x+q.tz*-OFF,q.z-q.tx*-OFF,q.tx,q.tz,.45,CW,.133)}   // เส้นหยุดขาออกที่สามแยก
+ {const q=at(R0,L0-16);[OFF,-OFF].forEach(o=>{for(let k=-3;k<=3;k++)rect(Aw,q.x+q.tz*(o+k*1.0),q.z-q.tx*(o+k*1.0),q.tx,q.tz,3.2,.5,.133)})}   // ทางม้าลายก่อนวงเวียน
+ {const q=at(R0,L0-4);for(let k=-3;k<=3;k++)rect(Aw,q.x+q.tz*(OFF+k*1.1),q.z-q.tx*(OFF+k*1.1),q.tx,q.tz,.5,.6,.133)}   // เส้นให้ทางก่อนเข้าวงเวียน (ประ)
+ const gate=B.find(b=>b.i==='G1');
+ for(let s=3;s<L0-6;s+=5){const q=at(R0,s);if(Math.hypot(q.x-gate.x,q.z-gate.z)<9)continue;const sp=new THREE.Mesh(new THREE.SphereGeometry(.55,7,6),new THREE.MeshLambertMaterial({color:s%10<5?0x3f8a3a:0x2f7a3a}));sp.position.set(q.x,.62,q.z);sp.scale.y=.9;S.add(sp);
+  if(s%15===3){const fl=new THREE.Mesh(new THREE.SphereGeometry(.2,6,5),new THREE.MeshLambertMaterial({color:[0xe85d8a,0xf2b230,0xffffff][(s/15|0)%3]}));fl.position.set(q.x+.3,1.1,q.z);S.add(fl)}}
+ // --- ถนนอื่นทั้งหมด: เส้นขอบทาง เส้นกึ่งกลาง เส้นหยุด ทางม้าลาย เส้นให้ทาง ---
+ ROADS.forEach((r,ri)=>{if(ri===0)return;const L=len(r);if(L<8)return;const sk=p=>nearOther(p,ri,4.6);
+  polyLine(Aw,r,3.15,.15,.13,0,0,sk);polyLine(Aw,r,-3.15,.15,.13,0,0,sk);
+  if(ri===1)polyLine(Ay,r,0,.2,.13,0,0,sk);else if(L>14)polyLine(Aw,r,0,.15,.13,3,6,sk);
+  [0,1].forEach(e=>{const E=e?r[r.length-1]:r[0],In=e?r[Math.max(0,r.length-4)]:r[Math.min(r.length-1,3)];let dx=E.x-In.x,dz=E.z-In.z;const m=Math.hypot(dx,dz)||1;dx/=m;dz/=m;
+   const dr=Math.hypot(E.x-RB.x,E.z-RB.z);
+   if(Math.abs(dr-RB.r)<1.8){ // ทางเข้าวงเวียน
+     if(L>22){const zx=E.x-dx*14,zz=E.z-dz*14;for(let k=-3;k<=3;k++)rect(Aw,zx+dz*k*1,zz-dx*k*1,dx,dz,3.2,.5,.133)}
+     for(let k=0;k<3;k++)rect(Aw,E.x-dx*2.6+dz*(.6+k*1.1),E.z-dz*2.6-dx*(.6+k*1.1),dx,dz,.5,.6,.133)}
+   else{let hit=-1,bd=2.6;ROADS.forEach((o,j)=>{if(j===ri)return;for(let i=1;i<o.length;i++){const d=dseg(E,o[i-1],o[i]);if(d<bd){bd=d;hit=j}}});
+     if(hit>=0&&L>10){const gp=hit===0?10.8:5.2,qx=E.x-dx*gp,qz=E.z-dz*gp;rect(Aw,qx+dz*1.75,qz-dx*1.75,dx,dz,.4,3.2,.133)}}})});
+ flush(Aa,mAsp);flush(Ag,mGr);flush(Ac,mCb);flush(Aw,mW);flush(Ar,mR);flush(Ay,mY);
+ // ----- วงเวียน: เส้นประแบ่งช่องวนซ้าย-ขวา -----
+ (function(){const A=mk(),rr=(RB.ri+RB.r)/2;for(let a=0;a<Math.PI*2;a+=2.3/rr+3.4/rr){const a1=a+2.3/rr;quad(A,[RB.x+Math.cos(a)*(rr-.08),RB.z+Math.sin(a)*(rr-.08)],[RB.x+Math.cos(a1)*(rr-.08),RB.z+Math.sin(a1)*(rr-.08)],[RB.x+Math.cos(a1)*(rr+.08),RB.z+Math.sin(a1)*(rr+.08)],[RB.x+Math.cos(a)*(rr+.08),RB.z+Math.sin(a)*(rr+.08)],.14)}flush(A,mW)})();
+})();
+
 // วงเวียน
 (function(){const rg=new THREE.Mesh(new THREE.RingGeometry(RB.ri,RB.r+.6,48),rm);rg.rotation.x=-Math.PI/2;rg.position.set(RB.x,.07,RB.z);S.add(rg);
  const cb=new THREE.Mesh(new THREE.RingGeometry(RB.ri-.3,RB.ri+.35,48),new THREE.MeshLambertMaterial({color:0xe8e4d8}));cb.rotation.x=-Math.PI/2;cb.position.set(RB.x,.14,RB.z);S.add(cb);
@@ -754,6 +813,8 @@ else if(b.k==='gate'){const y0=.1,wh=L(0xf3f2ee),dk=L(0x1d2225),cap=L(0xe6e4dc),
   box(2.2,2.5,.1,L(0x2b2f33),10.8,y0,.98);box(2.6,.15,1.2,cap,10.8,y0+2.6,1.5);
   [11,13,15,17].forEach(x=>addFlag(g,x,y0,3,'th',7));
   box(8,.9,1.6,L(0x2f6a3a),-14,y0,2.8);box(8,.8,1.4,L(0xa83a3a),13,y0,5);
+  // ป้ายทางเข้า/ทางออก บนเกาะกลางถนน (ขับชิดซ้าย: ขาเข้าอยู่ซ้ายมือของผู้ขับเข้า)
+  [[-.95,0,'ทางเข้า  IN','#1d7a43'],[.95,Math.PI,'ทางออก  OUT','#b8352f']].forEach(([x,ry,t,bg])=>{const pl=box(.1,3.2,.1,L(0x666a6c),x,.4,7.4),sg=new THREE.Mesh(new THREE.BoxGeometry(1.7,.7,.06),[L(0x333),L(0x333),L(0x333),L(0x333),new THREE.MeshLambertMaterial({map:textTex(t,bg,'#ffffff',44)}),L(0x555555)]);sg.position.set(x,3.1,7.4);sg.rotation.y=ry;g.add(sg)});
   ex=4}
 else if(b.k==='sakura'){const sec=CANAL.secs[2].center;let sd3=5;const r3=()=>(sd3=(sd3*16807)%2147483647)/2147483647;
   const trunk=L(0x7a5a3c),lf=L(0x3f8a3a),pk=[L(0xe48fb4),L(0xf0a9c8),L(0xd77fa6)],petal=L(0xf2b6cf),wd=L(0x6b4426),wd2=L(0x8a5a30),roof=L(0x6e2f33),conc=L(0xcfcfc8),bin=L(0x2f7a3a);
@@ -914,7 +975,7 @@ function waterTick(dt){waterTexes.forEach(w=>{w.t.offset.x+=w.dx*dt;w.t.offset.y
 // ต้นไม้ (สุ่มแบบคงที่)
 let sd=7;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;
 for(let k=0;k<280;k++){const x=rnd()*820-100,z=rnd()*820-330;
- if(Math.hypot(x-RB.x,z-RB.z)<RB.r+6||B.some(b=>Math.abs(x-b.x)<b.w/2+6&&Math.abs(z-b.z)<b.d/2+6)||ROADS.some(r=>r.some((a,i)=>i&&dseg({x,z},r[i-1],a)<7))||Math.abs(x-FIELD.x)<60&&Math.abs(z-FIELD.z)<70||inWater(x,z,4))continue;
+ if(Math.hypot(x-RB.x,z-RB.z)<RB.r+6||B.some(b=>Math.abs(x-b.x)<b.w/2+6&&Math.abs(z-b.z)<b.d/2+6)||ROADS.some((r,ri)=>r.some((a,i)=>i&&dseg({x,z},r[i-1],a)<(ri===0?11:7)))||Math.abs(x-FIELD.x)<60&&Math.abs(z-FIELD.z)<70||inWater(x,z,4))continue;
  const t=new THREE.Mesh(new THREE.CylinderGeometry(.3,.4,3),new THREE.MeshLambertMaterial({color:0x6b4a2b}));t.position.set(x,1.5,z);
  const f=new THREE.Mesh(new THREE.SphereGeometry(2.6,8,6),new THREE.MeshLambertMaterial({color:0x2f7a3a}));f.position.set(x,5,z);S.add(t,f)}
 
